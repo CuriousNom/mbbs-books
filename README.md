@@ -33,11 +33,13 @@ mbbs-books/
 ├── assets/
 │   ├── css/
 │   │   └── style.css                    # Material 3 UI and book reader styling
-│   └── js/
-│       ├── catalog.js                   # Master MBBS curriculum metadata
-│       ├── audio.js                     # Realistic Web Audio paper rustle synthesizer
-│       ├── reader.js                    # High-res reader, gesture zoom, bookmarks controller
-│       └── app.js                       # Library portal & search application
+│   ├── js/
+│   │   ├── catalog.js                   # Master MBBS curriculum metadata
+│   │   ├── audio.js                     # Realistic Web Audio paper rustle synthesizer
+│   │   ├── reader.js                    # High-res reader, gesture zoom, bookmarks controller
+│   │   └── app.js                       # Library portal & search application
+│   └── vendor/
+│       └── page-flip.browser.js         # Realistic page flip physics engine (on-demand loading)
 └── books/
     ├── 1st-year-mbbs/
     │   ├── anatomy/

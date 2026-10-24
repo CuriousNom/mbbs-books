@@ -246,6 +246,16 @@ class MBBSReader {
   }
 
   initFlipbook() {
+    // Clear existing flipbook instance if any
+    if (this.pageFlip) {
+      try {
+        this.pageFlip.destroy();
+      } catch (e) {
+        console.warn('Destroy flipbook err:', e);
+      }
+      this.pageFlip = null;
+    }
+
     // Ensure bookContainer exists in DOM
     const wrapper = document.getElementById('book-3d-wrapper');
     let container = document.getElementById('book-flip-container');
@@ -254,312 +264,110 @@ class MBBSReader {
       container.id = 'book-flip-container';
       wrapper.appendChild(container);
     }
+    container.innerHTML = '';
     this.bookContainer = container;
 
-    // Render clean, modern high-res book spread structure
-    this.bookContainer.innerHTML = `
-      <div class="modern-book-spread" id="modern-book-spread">
-        <div class="page-container page-left" id="page-container-left">
-          <img id="page-image-left" class="spread-page-image" alt="Left Page" />
-        </div>
-        <div class="book-center-spine" id="book-center-spine"></div>
-        <div class="page-container page-right" id="page-container-right">
-          <img id="page-image-right" class="spread-page-image" alt="Right Page" />
-        </div>
-      </div>
-    `;
-
-    this.spreadEl = document.getElementById('modern-book-spread');
-    this.pageContainerLeft = document.getElementById('page-container-left');
-    this.pageContainerRight = document.getElementById('page-container-right');
-    this.pageImageLeft = document.getElementById('page-image-left');
-    this.pageImageRight = document.getElementById('page-image-right');
-    this.spineEl = document.getElementById('book-center-spine');
-
-    // Update layout dimensions
-    this.updateSpreadDimensions();
-
-    // Render current spread with crystal-clear high-res WebP
-    this.renderCurrentSpread();
-  }
-
-  updateSpreadDimensions() {
-    if (!this.spreadEl || !this.bookContainer) return;
+    // Calculate responsive page dimensions
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
 
-    // Aspect ratio of BDC textbook pages ~ 1 : 1.32
-    const pageAspect = 1.32;
-    const maxAvailableHeight = Math.min(Math.max(viewportHeight - 120, 480), 960);
+    let pageHeight = Math.min(Math.max(viewportHeight - 130, 480), 860);
+    let pageWidth = Math.round(pageHeight / 1.32);
 
     if (viewportWidth < 800) {
-      // Mobile / portrait single page mode
+      pageWidth = Math.min(viewportWidth - 24, 520);
+      pageHeight = Math.round(pageWidth * 1.32);
       this.isSinglePage = true;
-      let w = Math.min(viewportWidth - 20, 560);
-      let h = Math.round(w * pageAspect);
-      if (h > maxAvailableHeight) {
-        h = maxAvailableHeight;
-        w = Math.round(h / pageAspect);
-      }
-      this.pageWidth = w;
-      this.pageHeight = h;
-      this.spreadWidth = w;
-
-      this.spreadEl.classList.add('single-page');
-      this.spreadEl.style.width = `${w}px`;
-      this.spreadEl.style.height = `${h}px`;
-      this.pageContainerRight.style.width = `${w}px`;
-      this.pageContainerRight.style.height = `${h}px`;
-      this.bookContainer.style.width = `${w}px`;
-      this.bookContainer.style.height = `${h}px`;
+      this.bookContainer.style.width = `${pageWidth}px`;
+      this.bookContainer.style.height = `${pageHeight}px`;
     } else {
-      // Desktop / landscape dual-page spread
+      if (pageWidth * 2 > viewportWidth - 80) {
+        pageWidth = Math.floor((viewportWidth - 80) / 2);
+        pageHeight = Math.round(pageWidth * 1.32);
+      }
       this.isSinglePage = false;
-      let h = maxAvailableHeight;
-      let w = Math.round(h / pageAspect);
+      this.bookContainer.style.width = `${pageWidth * 2}px`;
+      this.bookContainer.style.height = `${pageHeight}px`;
+    }
 
-      // Ensure 2 pages fit within available viewport width
-      if (w * 2 > viewportWidth - 80) {
-        w = Math.floor((viewportWidth - 80) / 2);
-        h = Math.round(w * pageAspect);
+    // Create PageFlip instance with realistic 3D paper curl physics
+    // Disabling mouse/touch drag on pages so hands are strictly for zooming/panning
+    const usePortrait = viewportWidth < 800;
+    this.pageFlip = new St.PageFlip(this.bookContainer, {
+      width: pageWidth,
+      height: pageHeight,
+      size: 'fixed',
+      minWidth: 280,
+      maxWidth: 1200,
+      minHeight: 380,
+      maxHeight: 1400,
+      drawShadow: true,
+      maxShadowOpacity: 0.5,
+      showCover: false,
+      usePortrait: usePortrait,
+      startPage: this.currentPage,
+      flippingTime: 650,
+      useMouseEvents: false,     // <-- Disables hand drag to turn pages
+      showPageCorners: false,    // <-- Disables corner peeling on hover/touch
+      disableFlipByClick: true,   // <-- Only flip when clicking navigation icons
+      mobileScrollSupport: false
+    });
+
+    // Generate image URLs
+    const imageUrls = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      imageUrls.push(`${this.currentBook.basePath}${i}.webp`);
+    }
+
+    // Load into PageFlip Canvas renderer
+    this.pageFlip.loadFromImages(imageUrls);
+
+    // Event listener: On page flip
+    this.pageFlip.on('flip', (e) => {
+      this.onPageFlipped(e.data);
+    });
+
+    // Event listener: On change state (for sound)
+    this.pageFlip.on('changeState', (e) => {
+      if (e.data === 'flipping') {
+        window.soundManager.playPageFlip();
       }
-      this.pageWidth = w;
-      this.pageHeight = h;
-      this.spreadWidth = w * 2;
-
-      this.spreadEl.classList.remove('single-page');
-      this.spreadEl.style.width = `${w * 2}px`;
-      this.spreadEl.style.height = `${h}px`;
-      this.pageContainerLeft.style.width = `${w}px`;
-      this.pageContainerLeft.style.height = `${h}px`;
-      this.pageContainerRight.style.width = `${w}px`;
-      this.pageContainerRight.style.height = `${h}px`;
-      this.bookContainer.style.width = `${w * 2}px`;
-      this.bookContainer.style.height = `${h}px`;
-    }
-  }
-
-  renderCurrentSpread(animated = false) {
-    if (!this.currentBook || !this.spreadEl) return;
-
-    const displayPage = this.currentPage + 1; // 1-indexed (1 to totalPages)
-
-    if (animated) {
-      this.spreadEl.classList.add('page-transitioning');
-      setTimeout(() => this.spreadEl?.classList.remove('page-transitioning'), 180);
-    }
-
-    if (this.isSinglePage) {
-      // Single page mode (mobile)
-      this.spreadEl.classList.add('single-page');
-      this.pageImageRight.src = `${this.currentBook.basePath}${displayPage}.webp`;
-      this.pageImageRight.alt = `${this.currentBook.title} - Page ${displayPage}`;
-    } else {
-      // 2-page spread mode (desktop)
-      if (displayPage === 1) {
-        // Cover / Title Page: shown single centered/right
-        this.spreadEl.classList.add('single-page');
-        this.pageImageRight.src = `${this.currentBook.basePath}1.webp`;
-        this.pageImageRight.alt = `${this.currentBook.title} - Page 1`;
-      } else {
-        this.spreadEl.classList.remove('single-page');
-        const leftPage = displayPage % 2 === 0 ? displayPage : displayPage - 1;
-        const rightPage = leftPage + 1;
-
-        this.pageImageLeft.src = `${this.currentBook.basePath}${leftPage}.webp`;
-        this.pageImageLeft.alt = `${this.currentBook.title} - Page ${leftPage}`;
-
-        if (rightPage <= this.totalPages) {
-          this.pageContainerRight.style.visibility = 'visible';
-          this.pageImageRight.src = `${this.currentBook.basePath}${rightPage}.webp`;
-          this.pageImageRight.alt = `${this.currentBook.title} - Page ${rightPage}`;
-        } else {
-          // Last odd page with no facing page
-          this.pageContainerRight.style.visibility = 'hidden';
-          this.pageImageRight.src = '';
-        }
-      }
-    }
+    });
 
     this.updatePageInfoUI(this.currentPage);
-    this.preloadAdjacentPages(displayPage);
-
-    // Save progress
-    this.saveLastReadPage(this.currentBook.id, displayPage);
   }
 
-  turnToPage(pageIndex) {
-    const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
-    if (target === this.currentPage) return;
+  onPageFlipped(pageIndex) {
+    const prevPage = this.currentPage;
+    this.currentPage = pageIndex;
 
-    const forward = target > this.currentPage;
-    this.currentPage = target;
+    window.soundManager.playPageFlip(pageIndex >= prevPage ? 'forward' : 'backward');
+    this.updatePageInfoUI(pageIndex);
 
-    window.soundManager.playPageFlip(forward ? 'forward' : 'backward');
-    this.renderCurrentSpread(true);
-  }
-
-  flipNext() {
-    if (this.isFlipping || !this.currentBook) return;
-    if (this.currentPage >= this.totalPages - 1) return;
-
-    let advance = 1;
-    if (!this.isSinglePage && this.currentPage > 0) {
-      advance = 2;
+    if (this.currentBook) {
+      this.saveLastReadPage(this.currentBook.id, pageIndex + 1);
     }
-    const target = Math.min(this.currentPage + advance, this.totalPages - 1);
-    this.animatePageFlip('next', target);
+
+    this.highlightCurrentChapter();
+    this.updateBookmarkButtonUI();
   }
 
   flipPrev() {
-    if (this.isFlipping || !this.currentBook) return;
-    if (this.currentPage <= 0) return;
-
-    let back = 1;
-    if (!this.isSinglePage && this.currentPage > 1) {
-      back = 2;
-    }
-    const target = Math.max(0, this.currentPage - back);
-    this.animatePageFlip('prev', target);
-  }
-
-  animatePageFlip(direction, targetPage) {
-    if (this.isFlipping || !this.spreadEl || !this.currentBook) {
-      this.turnToPage(targetPage);
-      return;
-    }
-
-    const curDisplay = this.currentPage + 1;
-    const targetDisplay = targetPage + 1;
-
-    // Play paper rustle flip sound
-    window.soundManager.playPageFlip(direction === 'next' ? 'forward' : 'backward');
-
-    if (this.isSinglePage) {
-      // Single Page 3D Flip (Mobile)
-      this.isFlipping = true;
-      const frontSrc = `${this.currentBook.basePath}${curDisplay}.webp`;
-      const backSrc = `${this.currentBook.basePath}${targetDisplay}.webp`;
-
-      const leaf = document.createElement('div');
-      leaf.className = `flipping-leaf flip-${direction}`;
-      leaf.style.width = `${this.pageWidth}px`;
-      leaf.style.left = '0px';
-
-      leaf.innerHTML = `
-        <div class="leaf-face leaf-front">
-          <img src="${frontSrc}" alt="Page ${curDisplay}" />
-          <div class="leaf-shadow"></div>
-        </div>
-        <div class="leaf-face leaf-back">
-          <img src="${backSrc}" alt="Page ${targetDisplay}" />
-          <div class="leaf-shadow"></div>
-        </div>
-      `;
-
-      this.pageImageRight.src = backSrc;
-      this.spreadEl.appendChild(leaf);
-
-      setTimeout(() => {
-        leaf.remove();
-        this.currentPage = targetPage;
-        this.renderCurrentSpread(false);
-        this.isFlipping = false;
-      }, 500);
-
-    } else {
-      // Dual Page Spread 3D Flip (Desktop)
-      this.isFlipping = true;
-      const leaf = document.createElement('div');
-      leaf.className = `flipping-leaf flip-${direction}`;
-      leaf.style.width = `${this.pageWidth}px`;
-
-      if (direction === 'next') {
-        // Flipping right page over to left
-        const curRight = curDisplay === 1 ? 1 : (curDisplay % 2 === 0 ? curDisplay + 1 : curDisplay);
-        const newLeft = targetDisplay % 2 === 0 ? targetDisplay : targetDisplay - 1;
-        const newRight = newLeft + 1;
-
-        const frontSrc = `${this.currentBook.basePath}${curRight}.webp`;
-        const backSrc = `${this.currentBook.basePath}${newLeft}.webp`;
-
-        leaf.style.left = `${this.pageWidth}px`;
-        leaf.innerHTML = `
-          <div class="leaf-face leaf-front">
-            <img src="${frontSrc}" alt="Page ${curRight}" />
-            <div class="leaf-shadow"></div>
-          </div>
-          <div class="leaf-face leaf-back">
-            <img src="${backSrc}" alt="Page ${newLeft}" />
-            <div class="leaf-shadow"></div>
-          </div>
-        `;
-
-        if (newRight <= this.totalPages) {
-          this.pageContainerRight.style.visibility = 'visible';
-          this.pageImageRight.src = `${this.currentBook.basePath}${newRight}.webp`;
-        } else {
-          this.pageContainerRight.style.visibility = 'hidden';
-        }
-
-        this.spreadEl.appendChild(leaf);
-
-        setTimeout(() => {
-          leaf.remove();
-          this.currentPage = targetPage;
-          this.renderCurrentSpread(false);
-          this.isFlipping = false;
-        }, 500);
-
-      } else {
-        // Flipping left page over to right
-        const curLeft = curDisplay % 2 === 0 ? curDisplay : curDisplay - 1;
-        let newLeft = 0;
-        let newRight = 1;
-
-        if (targetDisplay > 1) {
-          newLeft = targetDisplay % 2 === 0 ? targetDisplay : targetDisplay - 1;
-          newRight = newLeft + 1;
-        }
-
-        const frontSrc = `${this.currentBook.basePath}${curLeft}.webp`;
-        const backSrc = `${this.currentBook.basePath}${newRight}.webp`;
-
-        leaf.style.left = '0px';
-        leaf.innerHTML = `
-          <div class="leaf-face leaf-front">
-            <img src="${frontSrc}" alt="Page ${curLeft}" />
-            <div class="leaf-shadow"></div>
-          </div>
-          <div class="leaf-face leaf-back">
-            <img src="${backSrc}" alt="Page ${newRight}" />
-            <div class="leaf-shadow"></div>
-          </div>
-        `;
-
-        if (newLeft > 0) {
-          this.pageImageLeft.src = `${this.currentBook.basePath}${newLeft}.webp`;
-        }
-
-        this.spreadEl.appendChild(leaf);
-
-        setTimeout(() => {
-          leaf.remove();
-          this.currentPage = targetPage;
-          this.renderCurrentSpread(false);
-          this.isFlipping = false;
-        }, 500);
-      }
+    if (this.pageFlip) {
+      this.pageFlip.flipPrev();
     }
   }
 
-  preloadAdjacentPages(centerPage) {
-    if (!this.currentBook) return;
-    const start = Math.max(1, centerPage - 4);
-    const end = Math.min(this.totalPages, centerPage + 6);
-    for (let i = start; i <= end; i++) {
-      const img = new Image();
-      img.src = `${this.currentBook.basePath}${i}.webp`;
+  flipNext() {
+    if (this.pageFlip) {
+      this.pageFlip.flipNext();
+    }
+  }
+
+  turnToPage(pageIndex) {
+    if (this.pageFlip) {
+      const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
+      this.pageFlip.turnToPage(target);
     }
   }
 
@@ -568,8 +376,8 @@ class MBBSReader {
     this.pageSlider.value = displayPage;
     this.jumpInput.value = displayPage;
 
-    if (!this.isSinglePage && displayPage > 1 && displayPage < this.totalPages) {
-      const left = displayPage % 2 === 0 ? displayPage : displayPage - 1;
+    if (this.pageFlip && this.pageFlip.getOrientation() === 'landscape' && displayPage > 1 && displayPage < this.totalPages) {
+      const left = pageIndex % 2 === 0 ? displayPage : displayPage - 1;
       const right = left + 1;
       this.pageIndicatorEl.textContent = `Pages ${left} - ${right} of ${this.totalPages}`;
     } else {
