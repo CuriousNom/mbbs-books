@@ -16,6 +16,7 @@ class MBBSReader {
     this.stagePanX = 0;
     this.stagePanY = 0;
     this.isPanning = false;
+    this.isPinching = false;
     this.panStartX = 0;
     this.panStartY = 0;
     this.initialPinchDistance = 0;
@@ -282,6 +283,27 @@ class MBBSReader {
       this.bookContainer.style.height = `${pageHeight}px`;
     }
 
+    // Prepare HTML page elements with on-demand WebP high-resolution images
+    this.bookContainer.innerHTML = '';
+    for (let i = 1; i <= this.totalPages; i++) {
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'book-page-html';
+      pageDiv.dataset.density = (i === 1 || i === this.totalPages) ? 'hard' : 'soft';
+
+      const img = document.createElement('img');
+      img.alt = `${this.currentBook.title} - Page ${i}`;
+      const imgSrc = `${this.currentBook.basePath}${i}.webp`;
+
+      if (Math.abs(i - 1 - this.currentPage) <= 6) {
+        img.src = imgSrc;
+      } else {
+        img.dataset.src = imgSrc;
+      }
+
+      pageDiv.appendChild(img);
+      this.bookContainer.appendChild(pageDiv);
+    }
+
     // Create PageFlip instance
     const usePortrait = viewportWidth < 800;
     this.pageFlip = new St.PageFlip(this.bookContainer, {
@@ -289,27 +311,21 @@ class MBBSReader {
       height: pageHeight,
       size: 'fixed',
       minWidth: 280,
-      maxWidth: 1000,
+      maxWidth: 1200,
       minHeight: 380,
-      maxHeight: 1300,
+      maxHeight: 1400,
       drawShadow: true,
-      maxShadowOpacity: 0.5,
+      maxShadowOpacity: 0.45,
       showCover: false,
       usePortrait: usePortrait,
       startPage: this.currentPage,
-      flippingTime: 650,
+      flippingTime: 600,
       swipeDistance: 30,
       mobileScrollSupport: false
     });
 
-    // Generate image URLs
-    const imageUrls = [];
-    for (let i = 1; i <= this.totalPages; i++) {
-      imageUrls.push(`${this.currentBook.basePath}${i}.webp`);
-    }
-
-    // Load into PageFlip Canvas renderer
-    this.pageFlip.loadFromImages(imageUrls);
+    // Load HTML elements into PageFlip 3D Engine
+    this.pageFlip.loadFromHTML(this.bookContainer.querySelectorAll('.book-page-html'));
 
     // Event listener: On page flip
     this.pageFlip.on('flip', (e) => {
@@ -323,13 +339,9 @@ class MBBSReader {
       }
     });
 
-    // Double-click to magnify diagram
-    this.bookContainer.addEventListener('dblclick', () => {
-      this.openHDZoom();
-    });
-
     this.updatePageInfoUI(this.currentPage);
     this.updateDepthStacks(this.currentPage);
+    this.preloadAdjacentPages(this.currentPage);
   }
 
   onPageFlipped(pageIndex) {
@@ -341,6 +353,7 @@ class MBBSReader {
 
     this.updatePageInfoUI(pageIndex);
     this.updateDepthStacks(pageIndex);
+    this.preloadAdjacentPages(pageIndex);
 
     // Save progress
     if (this.currentBook) {
@@ -350,6 +363,28 @@ class MBBSReader {
     // Update active chapter & bookmark indicator
     this.highlightCurrentChapter();
     this.updateBookmarkButtonUI();
+  }
+
+  preloadAdjacentPages(centerIndex) {
+    if (!this.bookContainer) return;
+    const allImages = this.bookContainer.querySelectorAll('.book-page-html img');
+    const start = Math.max(0, centerIndex - 10);
+    const end = Math.min(this.totalPages - 1, centerIndex + 10);
+
+    for (let i = start; i <= end; i++) {
+      const img = allImages[i];
+      if (img && !img.src && img.dataset.src) {
+        img.src = img.dataset.src;
+      }
+    }
+  }
+
+  turnToPage(pageIndex) {
+    if (this.pageFlip) {
+      const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
+      this.preloadAdjacentPages(target);
+      this.pageFlip.turnToPage(target);
+    }
   }
 
   updatePageInfoUI(pageIndex) {
@@ -614,24 +649,27 @@ class MBBSReader {
     this.stageContainer.addEventListener('touchstart', (e) => {
       if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
 
-      if (e.touches.length === 2) {
-        // Multi-touch pinch zoom initiation
+      if (e.touches.length >= 2) {
+        // Multi-touch pinch zoom initiation with fingers
         e.preventDefault();
-        this.initialPinchDistance = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
+        e.stopPropagation();
+        this.isPinching = true;
+        this.isPanning = false;
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        this.initialPinchDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
         this.initialPinchZoom = this.stageZoom;
-        this.pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        this.pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        this.pinchCenterX = (t1.clientX + t2.clientX) / 2;
+        this.pinchCenterY = (t1.clientY + t2.clientY) / 2;
       } else if (e.touches.length === 1) {
         const touch = e.touches[0];
         const now = Date.now();
         const dist = Math.hypot(touch.clientX - this.lastTapX, touch.clientY - this.lastTapY);
 
-        // Double-tap to zoom detection (< 300ms, < 35px)
-        if (now - this.lastTapTime < 300 && dist < 35) {
+        // Double-tap to zoom detection (< 320ms, < 40px)
+        if (now - this.lastTapTime < 320 && dist < 40) {
           e.preventDefault();
+          e.stopPropagation();
           this.toggleStageZoom(touch.clientX, touch.clientY);
           this.lastTapTime = 0;
           return;
@@ -641,40 +679,51 @@ class MBBSReader {
         this.lastTapY = touch.clientY;
 
         if (this.stageZoom > 1.05) {
+          // In zoomed mode, drag pans freely without page curl
+          e.preventDefault();
+          e.stopPropagation();
           this.isPanning = true;
           this.panStartX = touch.clientX - this.stagePanX;
           this.panStartY = touch.clientY - this.stagePanY;
           this.stageContainer.classList.add('panning');
         }
       }
-    }, { passive: false });
+    }, { capture: true, passive: false });
 
     this.stageContainer.addEventListener('touchmove', (e) => {
-      if (e.touches.length === 2) {
+      if (e.touches.length >= 2 || this.isPinching) {
         e.preventDefault();
-        const currentDist = Math.hypot(
-          e.touches[0].clientX - e.touches[1].clientX,
-          e.touches[0].clientY - e.touches[1].clientY
-        );
-        if (this.initialPinchDistance > 10) {
-          const factor = currentDist / this.initialPinchDistance;
-          const targetZoom = Math.min(Math.max(this.initialPinchZoom * factor, 1.0), 3.8);
-          this.setStageZoom(targetZoom, this.pinchCenterX, this.pinchCenterY, false);
+        e.stopPropagation();
+        if (e.touches.length >= 2) {
+          const t1 = e.touches[0];
+          const t2 = e.touches[1];
+          const curDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+          const curCenterX = (t1.clientX + t2.clientX) / 2;
+          const curCenterY = (t1.clientY + t2.clientY) / 2;
+          if (this.initialPinchDistance > 10) {
+            const factor = curDist / this.initialPinchDistance;
+            const targetZoom = Math.min(Math.max(this.initialPinchZoom * factor, 1.0), 4.0);
+            this.setStageZoom(targetZoom, curCenterX, curCenterY, false);
+          }
         }
       } else if (e.touches.length === 1 && this.stageZoom > 1.05 && this.isPanning) {
         e.preventDefault();
+        e.stopPropagation();
         this.stagePanX = e.touches[0].clientX - this.panStartX;
         this.stagePanY = e.touches[0].clientY - this.panStartY;
         this.constrainPanBounds();
         this.applyStageTransform(false);
       }
-    }, { passive: false });
+    }, { capture: true, passive: false });
 
     const endTouch = (e) => {
-      if (e.touches.length < 2) {
-        this.initialPinchDistance = 0;
+      if (this.isPinching) {
+        if (e.touches.length < 2) {
+          this.isPinching = false;
+          this.initialPinchDistance = 0;
+        }
       }
-      if (e.touches.length === 0) {
+      if (this.isPanning && e.touches.length === 0) {
         this.isPanning = false;
         this.stageContainer?.classList.remove('panning');
         this.constrainPanBounds();
@@ -682,8 +731,8 @@ class MBBSReader {
       }
     };
 
-    this.stageContainer.addEventListener('touchend', endTouch);
-    this.stageContainer.addEventListener('touchcancel', endTouch);
+    this.stageContainer.addEventListener('touchend', endTouch, { capture: true, passive: false });
+    this.stageContainer.addEventListener('touchcancel', endTouch, { capture: true, passive: false });
 
     // --- Mouse & Trackpad Gestures (Drag Pan & Wheel/Trackpad Pinch) ---
     this.stageContainer.addEventListener('mousedown', (e) => {
@@ -734,7 +783,7 @@ class MBBSReader {
 
   setStageZoom(targetZoom, clientX, clientY, animated = false) {
     const oldZoom = this.stageZoom;
-    const newZoom = Math.min(Math.max(targetZoom, 1.0), 3.8);
+    const newZoom = Math.min(Math.max(targetZoom, 1.0), 4.0);
 
     if (Math.abs(newZoom - oldZoom) < 0.001) return;
 
@@ -761,7 +810,7 @@ class MBBSReader {
   }
 
   adjustStageZoom(delta, clientX, clientY) {
-    const newZoom = Math.min(Math.max(this.stageZoom + delta, 1.0), 3.8);
+    const newZoom = Math.min(Math.max(this.stageZoom + delta, 1.0), 4.0);
     this.setStageZoom(newZoom, clientX, clientY, true);
   }
 
