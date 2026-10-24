@@ -6,7 +6,20 @@ class MBBSReader {
     this.currentPage = 0; // 0-indexed for PageFlip
     this.totalPages = 0;
     this.pageFlip = null;
+    // HD Magnifier Zoom & Pan properties
     this.zoomScale = 1.0;
+    this.zoomPanX = 0;
+    this.zoomPanY = 0;
+    this.zoomIsPanning = false;
+    this.zoomIsPinching = false;
+    this.zoomPinchStartDist = 0;
+    this.zoomPinchStartScale = 1.0;
+    this.zoomPanStartX = 0;
+    this.zoomPanStartY = 0;
+    this.zoomLastTapTime = 0;
+    this.zoomLastTapX = 0;
+    this.zoomLastTapY = 0;
+
     this.currentTheme = localStorage.getItem('mbbs_reader_theme') || 'default';
     this.activeDrawer = null;
     this.isSinglePage = false;
@@ -115,11 +128,13 @@ class MBBSReader {
     // Fullscreen toggle
     document.getElementById('btn-fullscreen-toggle')?.addEventListener('click', () => this.toggleFullscreen());
 
-    // HD Zoom open
+    // HD Zoom open & navigation
     document.getElementById('btn-zoom-toggle')?.addEventListener('click', () => this.openHDZoom());
     document.getElementById('btn-zoom-close')?.addEventListener('click', () => this.closeHDZoom());
-    document.getElementById('btn-zoom-in')?.addEventListener('click', () => this.adjustZoom(0.25));
-    document.getElementById('btn-zoom-out')?.addEventListener('click', () => this.adjustZoom(-0.25));
+    document.getElementById('btn-zoom-prev')?.addEventListener('click', () => this.prevHDZoomPage());
+    document.getElementById('btn-zoom-next')?.addEventListener('click', () => this.nextHDZoomPage());
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => this.adjustZoom(0.35));
+    document.getElementById('btn-zoom-out')?.addEventListener('click', () => this.adjustZoom(-0.35));
     document.getElementById('btn-zoom-reset')?.addEventListener('click', () => this.resetZoom());
 
     // Window resize / orientation change (debounced)
@@ -154,12 +169,20 @@ class MBBSReader {
       switch (e.key) {
         case 'ArrowLeft':
         case 'PageUp':
-          this.flipPrev();
+          if (this.zoomModal?.classList.contains('active')) {
+            this.prevHDZoomPage();
+          } else {
+            this.flipPrev();
+          }
           break;
         case 'ArrowRight':
         case 'PageDown':
         case ' ':
-          this.flipNext();
+          if (this.zoomModal?.classList.contains('active')) {
+            this.nextHDZoomPage();
+          } else {
+            this.flipNext();
+          }
           break;
         case 'Home':
           this.turnToPage(0);
@@ -851,72 +874,266 @@ class MBBSReader {
   }
 
   // =========================================================================
-  // High-Definition Diagram Zoom Modal (HD Magnifier)
+  // High-Definition Diagram Zoom Modal (HD Magnifier) with Multi-Touch & Swipe
   // =========================================================================
 
   openHDZoom() {
     if (!this.currentBook) return;
-    const page = this.currentPage + 1;
-    this.zoomImage.src = `${this.currentBook.basePath}${page}.webp`;
-    this.zoomTitle.innerHTML = `<i class="fa-solid fa-magnifying-glass-plus"></i> HD Magnifier: ${this.currentBook.title} (Page ${page})`;
-    this.zoomScale = 1.0;
-    this.updateZoomTransform();
+    this.updateHDZoomImage();
     this.zoomModal.classList.add('active');
   }
 
   closeHDZoom() {
     this.zoomModal.classList.remove('active');
+    this.resetZoom();
   }
 
-  adjustZoom(delta) {
-    this.zoomScale = Math.max(0.75, Math.min(this.zoomScale + delta, 3.5));
-    this.updateZoomTransform();
+  prevHDZoomPage() {
+    if (!this.currentBook || this.currentPage <= 0) return;
+    this.turnToPage(this.currentPage - 1);
+    this.updateHDZoomImage();
+  }
+
+  nextHDZoomPage() {
+    if (!this.currentBook || this.currentPage >= this.totalPages - 1) return;
+    this.turnToPage(this.currentPage + 1);
+    this.updateHDZoomImage();
+  }
+
+  updateHDZoomImage() {
+    if (!this.currentBook) return;
+    const page = this.currentPage + 1;
+    this.zoomImage.src = `${this.currentBook.basePath}${page}.webp`;
+    this.zoomTitle.innerHTML = `<i class="fa-solid fa-magnifying-glass-plus"></i> HD Magnifier: ${this.currentBook.title} (Page ${page} of ${this.totalPages})`;
+    this.resetZoom();
+  }
+
+  adjustZoom(delta, focalX, focalY) {
+    const targetScale = Math.min(Math.max(this.zoomScale + delta, 0.75), 4.5);
+    this.setZoomScale(targetScale, focalX, focalY, true);
   }
 
   resetZoom() {
     this.zoomScale = 1.0;
-    this.updateZoomTransform();
+    this.zoomPanX = 0;
+    this.zoomPanY = 0;
+    this.zoomIsPanning = false;
+    this.zoomIsPinching = false;
+    const viewport = document.getElementById('zoom-viewport');
+    viewport?.classList.remove('panning');
+    this.updateZoomTransform(true);
   }
 
-  updateZoomTransform() {
-    this.zoomImage.style.transform = `scale(${this.zoomScale})`;
+  setZoomScale(targetScale, focalX, focalY, animated = false) {
+    const oldScale = this.zoomScale;
+    const newScale = Math.min(Math.max(targetScale, 0.75), 4.5);
+
+    if (Math.abs(newScale - oldScale) < 0.001) return;
+
+    if (newScale <= 1.02) {
+      this.zoomScale = 1.0;
+      this.zoomPanX = 0;
+      this.zoomPanY = 0;
+    } else {
+      if (focalX !== undefined && focalY !== undefined) {
+        const viewport = document.getElementById('zoom-viewport');
+        const rect = viewport ? viewport.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const rx = (focalX - cx) - this.zoomPanX;
+        const ry = (focalY - cy) - this.zoomPanY;
+        const ratio = newScale / oldScale;
+        this.zoomPanX -= rx * (ratio - 1);
+        this.zoomPanY -= ry * (ratio - 1);
+      }
+      this.zoomScale = newScale;
+      this.constrainZoomPan();
+    }
+    this.updateZoomTransform(animated);
+  }
+
+  constrainZoomPan() {
+    const viewport = document.getElementById('zoom-viewport');
+    if (!viewport || !this.zoomImage) return;
+
+    if (this.zoomScale <= 1.05) {
+      this.zoomPanX = 0;
+      this.zoomPanY = 0;
+      return;
+    }
+
+    const vpRect = viewport.getBoundingClientRect();
+    const imgRect = this.zoomImage.getBoundingClientRect();
+
+    const maxPanX = Math.max(0, (imgRect.width - vpRect.width) / 2 + 100);
+    const maxPanY = Math.max(0, (imgRect.height - vpRect.height) / 2 + 100);
+
+    this.zoomPanX = Math.max(-maxPanX, Math.min(maxPanX, this.zoomPanX));
+    this.zoomPanY = Math.max(-maxPanY, Math.min(maxPanY, this.zoomPanY));
+  }
+
+  updateZoomTransform(animated = false) {
+    if (!this.zoomImage) return;
+    if (animated) {
+      this.zoomImage.style.transition = 'transform 0.22s cubic-bezier(0.2, 0, 0, 1)';
+    } else {
+      this.zoomImage.style.transition = 'none';
+    }
+    this.zoomImage.style.transform = `translate3d(${this.zoomPanX}px, ${this.zoomPanY}px, 0) scale(${this.zoomScale})`;
   }
 
   initZoomDraggable() {
     const viewport = document.getElementById('zoom-viewport');
     if (!viewport) return;
 
-    let isDown = false;
-    let startX, startY, scrollLeft, scrollTop;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
 
+    // --- Multi-Touch Pinch Zoom & Finger Drag Scroll / Swipe ---
+    viewport.addEventListener('touchstart', (e) => {
+      if (e.touches.length >= 2) {
+        // Two-finger Pinch to Zoom
+        e.preventDefault();
+        this.zoomIsPinching = true;
+        this.zoomIsPanning = false;
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        this.zoomPinchStartDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+        this.zoomPinchStartScale = this.zoomScale;
+      } else if (e.touches.length === 1) {
+        const t = e.touches[0];
+        const now = Date.now();
+        const dist = Math.hypot(t.clientX - this.zoomLastTapX, t.clientY - this.zoomLastTapY);
+
+        // Double-tap to toggle zoom (< 320ms, < 40px)
+        if (now - this.zoomLastTapTime < 320 && dist < 40) {
+          e.preventDefault();
+          if (this.zoomScale > 1.1) {
+            this.resetZoom();
+          } else {
+            this.setZoomScale(2.5, t.clientX, t.clientY, true);
+          }
+          this.zoomLastTapTime = 0;
+          return;
+        }
+
+        this.zoomLastTapTime = now;
+        this.zoomLastTapX = t.clientX;
+        this.zoomLastTapY = t.clientY;
+
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+        touchStartTime = now;
+
+        this.zoomIsPanning = true;
+        this.zoomPanStartX = t.clientX - this.zoomPanX;
+        this.zoomPanStartY = t.clientY - this.zoomPanY;
+        viewport.classList.add('panning');
+      }
+    }, { capture: true, passive: false });
+
+    viewport.addEventListener('touchmove', (e) => {
+      if (e.touches.length >= 2 && this.zoomIsPinching) {
+        e.preventDefault();
+        const t1 = e.touches[0];
+        const t2 = e.touches[1];
+        const curDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+        const focalX = (t1.clientX + t2.clientX) / 2;
+        const focalY = (t1.clientY + t2.clientY) / 2;
+        if (this.zoomPinchStartDist > 10) {
+          const factor = curDist / this.zoomPinchStartDist;
+          this.setZoomScale(this.zoomPinchStartScale * factor, focalX, focalY, false);
+        }
+      } else if (e.touches.length === 1 && this.zoomIsPanning) {
+        e.preventDefault();
+        const t = e.touches[0];
+        this.zoomPanX = t.clientX - this.zoomPanStartX;
+        this.zoomPanY = t.clientY - this.zoomPanStartY;
+        this.constrainZoomPan();
+        this.updateZoomTransform(false);
+      }
+    }, { capture: true, passive: false });
+
+    const endTouch = (e) => {
+      if (this.zoomIsPinching) {
+        if (e.touches.length < 2) {
+          this.zoomIsPinching = false;
+          this.zoomPinchStartDist = 0;
+        }
+      }
+      if (this.zoomIsPanning && e.touches.length === 0) {
+        this.zoomIsPanning = false;
+        viewport.classList.remove('panning');
+
+        // If at normal fit (1.0x), horizontal finger swipe navigates between pages
+        if (this.zoomScale <= 1.05) {
+          const changed = e.changedTouches[0];
+          if (changed) {
+            const dx = changed.clientX - touchStartX;
+            const dy = changed.clientY - touchStartY;
+            const dt = Date.now() - touchStartTime;
+            if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5 && dt < 450) {
+              if (dx < 0) {
+                this.nextHDZoomPage();
+              } else {
+                this.prevHDZoomPage();
+              }
+            }
+          }
+        }
+
+        this.constrainZoomPan();
+        this.updateZoomTransform(true);
+      }
+    };
+
+    viewport.addEventListener('touchend', endTouch, { capture: true, passive: false });
+    viewport.addEventListener('touchcancel', endTouch, { capture: true, passive: false });
+
+    // --- Mouse & Trackpad Gestures (Drag Pan & Wheel/Trackpad Pinch) ---
     viewport.addEventListener('mousedown', (e) => {
-      isDown = true;
-      startX = e.pageX - viewport.offsetLeft;
-      startY = e.pageY - viewport.offsetTop;
-      scrollLeft = viewport.scrollLeft;
-      scrollTop = viewport.scrollTop;
+      if (e.button === 0 || e.button === 1) {
+        e.preventDefault();
+        this.zoomIsPanning = true;
+        this.zoomPanStartX = e.clientX - this.zoomPanX;
+        this.zoomPanStartY = e.clientY - this.zoomPanY;
+        viewport.classList.add('panning');
+      }
     });
 
-    viewport.addEventListener('mouseleave', () => isDown = false);
-    viewport.addEventListener('mouseup', () => isDown = false);
-
-    viewport.addEventListener('mousemove', (e) => {
-      if (!isDown) return;
+    window.addEventListener('mousemove', (e) => {
+      if (!this.zoomIsPanning) return;
       e.preventDefault();
-      const x = e.pageX - viewport.offsetLeft;
-      const y = e.pageY - viewport.offsetTop;
-      const walkX = (x - startX) * 1.5;
-      const walkY = (y - startY) * 1.5;
-      viewport.scrollLeft = scrollLeft - walkX;
-      viewport.scrollTop = scrollTop - walkY;
+      this.zoomPanX = e.clientX - this.zoomPanStartX;
+      this.zoomPanY = e.clientY - this.zoomPanStartY;
+      this.constrainZoomPan();
+      this.updateZoomTransform(false);
     });
 
-    // Mouse wheel zoom
+    window.addEventListener('mouseup', () => {
+      if (this.zoomIsPanning) {
+        this.zoomIsPanning = false;
+        viewport.classList.remove('panning');
+        this.constrainZoomPan();
+        this.updateZoomTransform(true);
+      }
+    });
+
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const delta = e.deltaY < 0 ? 0.2 : -0.2;
-      this.adjustZoom(delta);
+      const delta = e.deltaY < 0 ? 0.25 : -0.25;
+      this.adjustZoom(delta, e.clientX, e.clientY);
     }, { passive: false });
+
+    viewport.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      if (this.zoomScale > 1.1) {
+        this.resetZoom();
+      } else {
+        this.setZoomScale(2.5, e.clientX, e.clientY, true);
+      }
+    });
   }
 
   // =========================================================================

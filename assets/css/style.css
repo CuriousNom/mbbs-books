@@ -1315,24 +1315,31 @@ body {
 
 .zoom-viewport {
   flex: 1;
-  overflow: auto;
+  overflow: hidden;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: grab;
-  padding: 1.5rem;
+  padding: 1rem;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-.zoom-viewport:active {
+.zoom-viewport.panning {
   cursor: grabbing;
 }
 
 .zoom-image {
   max-width: 90%;
   max-height: 90%;
-  transition: transform 0.15s ease-out;
+  object-fit: contain;
+  transform-origin: center center;
+  will-change: transform;
   border-radius: var(--shape-m);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
 }
 
 /* Responsive Adaptations */
@@ -1353,6 +1360,23 @@ body {
   }
   .reader-book-details {
     max-width: 130px;
+  }
+  .zoom-top-bar {
+    margin: 8px 8px 0;
+    height: 46px;
+    padding: 0 0.75rem;
+  }
+  .zoom-title {
+    font-size: 0.76rem;
+    max-width: 140px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .zoom-btn {
+    height: 28px;
+    padding: 0 0.5rem;
+    font-size: 0.72rem;
   }
   .btn-flip-prev {
     left: 0.4rem;
