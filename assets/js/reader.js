@@ -11,6 +11,21 @@ class MBBSReader {
     this.activeDrawer = null;
     this.isSinglePage = false;
 
+    // Stage Zoom & Pan properties
+    this.stageZoom = 1.0;
+    this.stagePanX = 0;
+    this.stagePanY = 0;
+    this.isPanning = false;
+    this.panStartX = 0;
+    this.panStartY = 0;
+    this.initialPinchDistance = 0;
+    this.initialPinchZoom = 1.0;
+    this.pinchCenterX = 0;
+    this.pinchCenterY = 0;
+    this.lastTapTime = 0;
+    this.lastTapX = 0;
+    this.lastTapY = 0;
+
     this.initDOMElements();
     this.attachEventListeners();
     this.applyTheme(this.currentTheme);
@@ -30,6 +45,10 @@ class MBBSReader {
     this.depthStackLeft = document.getElementById('book-depth-left');
     this.depthStackRight = document.getElementById('book-depth-right');
     this.spineCrease = document.getElementById('book-spine-crease');
+
+    this.stageContainer = document.querySelector('.reader-stage-container');
+    this.stageWrapper = document.getElementById('book-3d-wrapper');
+    this.zoomLevelText = document.getElementById('zoom-level-text');
 
     // Drawers
     this.chaptersDrawer = document.getElementById('drawer-chapters');
@@ -52,6 +71,14 @@ class MBBSReader {
     // Navigation arrows
     document.getElementById('btn-flip-prev')?.addEventListener('click', () => this.flipPrev());
     document.getElementById('btn-flip-next')?.addEventListener('click', () => this.flipNext());
+
+    // Floating Stage Zoom Dock Buttons
+    document.getElementById('btn-stage-zoom-in')?.addEventListener('click', () => this.adjustStageZoom(0.35));
+    document.getElementById('btn-stage-zoom-out')?.addEventListener('click', () => this.adjustStageZoom(-0.35));
+    document.getElementById('btn-stage-zoom-reset')?.addEventListener('click', () => this.resetStageZoom());
+
+    // Initialize Hand / Touch Gesture Zoom Engine
+    this.initHandGestureZoom();
 
     // Slider scrubbing
     this.pageSlider?.addEventListener('input', (e) => {
@@ -178,6 +205,7 @@ class MBBSReader {
     // Show modal
     this.modal.classList.add('active');
     document.body.style.overflow = 'hidden';
+    this.resetStageZoom();
 
     // Populate drawers
     this.renderChaptersDrawer();
@@ -195,6 +223,7 @@ class MBBSReader {
     document.body.style.overflow = '';
     this.closeAllDrawers();
     this.closeHDZoom();
+    this.resetStageZoom();
 
     // Save reading progress
     if (this.currentBook) {
@@ -572,6 +601,227 @@ class MBBSReader {
       });
       this.bookmarksListEl.appendChild(item);
     });
+  }
+
+  // =========================================================================
+  // Hand & Touch Gesture Stage Zoom Engine
+  // =========================================================================
+
+  initHandGestureZoom() {
+    if (!this.stageContainer) return;
+
+    // --- Touch Gestures (Pinch to Zoom & One-Finger Pan) ---
+    this.stageContainer.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
+
+      if (e.touches.length === 2) {
+        // Multi-touch pinch zoom initiation
+        e.preventDefault();
+        this.initialPinchDistance = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        this.initialPinchZoom = this.stageZoom;
+        this.pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        this.pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      } else if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        const now = Date.now();
+        const dist = Math.hypot(touch.clientX - this.lastTapX, touch.clientY - this.lastTapY);
+
+        // Double-tap to zoom detection (< 300ms, < 35px)
+        if (now - this.lastTapTime < 300 && dist < 35) {
+          e.preventDefault();
+          this.toggleStageZoom(touch.clientX, touch.clientY);
+          this.lastTapTime = 0;
+          return;
+        }
+        this.lastTapTime = now;
+        this.lastTapX = touch.clientX;
+        this.lastTapY = touch.clientY;
+
+        if (this.stageZoom > 1.05) {
+          this.isPanning = true;
+          this.panStartX = touch.clientX - this.stagePanX;
+          this.panStartY = touch.clientY - this.stagePanY;
+          this.stageContainer.classList.add('panning');
+        }
+      }
+    }, { passive: false });
+
+    this.stageContainer.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const currentDist = Math.hypot(
+          e.touches[0].clientX - e.touches[1].clientX,
+          e.touches[0].clientY - e.touches[1].clientY
+        );
+        if (this.initialPinchDistance > 10) {
+          const factor = currentDist / this.initialPinchDistance;
+          const targetZoom = Math.min(Math.max(this.initialPinchZoom * factor, 1.0), 3.8);
+          this.setStageZoom(targetZoom, this.pinchCenterX, this.pinchCenterY, false);
+        }
+      } else if (e.touches.length === 1 && this.stageZoom > 1.05 && this.isPanning) {
+        e.preventDefault();
+        this.stagePanX = e.touches[0].clientX - this.panStartX;
+        this.stagePanY = e.touches[0].clientY - this.panStartY;
+        this.constrainPanBounds();
+        this.applyStageTransform(false);
+      }
+    }, { passive: false });
+
+    const endTouch = (e) => {
+      if (e.touches.length < 2) {
+        this.initialPinchDistance = 0;
+      }
+      if (e.touches.length === 0) {
+        this.isPanning = false;
+        this.stageContainer?.classList.remove('panning');
+        this.constrainPanBounds();
+        this.applyStageTransform(true);
+      }
+    };
+
+    this.stageContainer.addEventListener('touchend', endTouch);
+    this.stageContainer.addEventListener('touchcancel', endTouch);
+
+    // --- Mouse & Trackpad Gestures (Drag Pan & Wheel/Trackpad Pinch) ---
+    this.stageContainer.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
+      if (this.stageZoom > 1.05 && (e.button === 0 || e.button === 1)) {
+        e.preventDefault();
+        this.isPanning = true;
+        this.panStartX = e.clientX - this.stagePanX;
+        this.panStartY = e.clientY - this.stagePanY;
+        this.stageContainer.classList.add('panning');
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!this.isPanning || this.stageZoom <= 1.05) return;
+      e.preventDefault();
+      this.stagePanX = e.clientX - this.panStartX;
+      this.stagePanY = e.clientY - this.panStartY;
+      this.constrainPanBounds();
+      this.applyStageTransform(false);
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (this.isPanning) {
+        this.isPanning = false;
+        this.stageContainer?.classList.remove('panning');
+        this.constrainPanBounds();
+        this.applyStageTransform(true);
+      }
+    });
+
+    // Double-click to quick zoom
+    this.stageContainer.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
+      e.preventDefault();
+      this.toggleStageZoom(e.clientX, e.clientY);
+    });
+
+    // Mouse wheel or trackpad pinch zoom
+    this.stageContainer.addEventListener('wheel', (e) => {
+      if (e.ctrlKey || this.stageZoom > 1.05) {
+        e.preventDefault();
+        const delta = e.deltaY < 0 ? 0.25 : -0.25;
+        this.adjustStageZoom(delta, e.clientX, e.clientY);
+      }
+    }, { passive: false });
+  }
+
+  setStageZoom(targetZoom, clientX, clientY, animated = false) {
+    const oldZoom = this.stageZoom;
+    const newZoom = Math.min(Math.max(targetZoom, 1.0), 3.8);
+
+    if (Math.abs(newZoom - oldZoom) < 0.001) return;
+
+    if (newZoom <= 1.02) {
+      this.stageZoom = 1.0;
+      this.stagePanX = 0;
+      this.stagePanY = 0;
+    } else {
+      if (clientX !== undefined && clientY !== undefined && this.stageContainer) {
+        const rect = this.stageContainer.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const rx = (clientX - cx) - this.stagePanX;
+        const ry = (clientY - cy) - this.stagePanY;
+        const ratio = newZoom / oldZoom;
+        this.stagePanX -= rx * (ratio - 1);
+        this.stagePanY -= ry * (ratio - 1);
+      }
+      this.stageZoom = newZoom;
+      this.constrainPanBounds();
+    }
+
+    this.applyStageTransform(animated);
+  }
+
+  adjustStageZoom(delta, clientX, clientY) {
+    const newZoom = Math.min(Math.max(this.stageZoom + delta, 1.0), 3.8);
+    this.setStageZoom(newZoom, clientX, clientY, true);
+  }
+
+  resetStageZoom() {
+    this.stageZoom = 1.0;
+    this.stagePanX = 0;
+    this.stagePanY = 0;
+    this.isPanning = false;
+    this.stageContainer?.classList.remove('panning');
+    this.applyStageTransform(true);
+  }
+
+  toggleStageZoom(clientX, clientY) {
+    if (this.stageZoom > 1.1) {
+      this.resetStageZoom();
+    } else {
+      this.setStageZoom(2.2, clientX, clientY, true);
+    }
+  }
+
+  constrainPanBounds() {
+    if (this.stageZoom <= 1.05 || !this.stageContainer || !this.stageWrapper) {
+      this.stagePanX = 0;
+      this.stagePanY = 0;
+      return;
+    }
+
+    const rect = this.stageContainer.getBoundingClientRect();
+    const wrapRect = this.stageWrapper.getBoundingClientRect();
+    const maxPanX = Math.max(0, (wrapRect.width - rect.width) / 2 + 100);
+    const maxPanY = Math.max(0, (wrapRect.height - rect.height) / 2 + 100);
+
+    this.stagePanX = Math.max(-maxPanX, Math.min(maxPanX, this.stagePanX));
+    this.stagePanY = Math.max(-maxPanY, Math.min(maxPanY, this.stagePanY));
+  }
+
+  applyStageTransform(animated = false) {
+    if (!this.stageWrapper) return;
+
+    if (animated) {
+      this.stageWrapper.style.transition = 'transform 0.22s cubic-bezier(0.2, 0, 0, 1)';
+    } else {
+      this.stageWrapper.style.transition = 'none';
+    }
+
+    this.stageWrapper.style.transform = `translate3d(${this.stagePanX}px, ${this.stagePanY}px, 0) scale(${this.stageZoom})`;
+
+    if (this.zoomLevelText) {
+      this.zoomLevelText.textContent = `${Math.round(this.stageZoom * 100)}%`;
+    }
+
+    if (this.stageContainer) {
+      if (this.stageZoom > 1.05) {
+        this.stageContainer.classList.add('zoomed');
+        this.bookContainer?.classList.add('disable-flip-pointers');
+      } else {
+        this.stageContainer.classList.remove('zoomed');
+        this.bookContainer?.classList.remove('disable-flip-pointers');
+      }
+    }
   }
 
   // =========================================================================
