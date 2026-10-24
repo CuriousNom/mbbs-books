@@ -1,44 +1,39 @@
 # MBBS Book Library 🩺 📖
 
-A fast, lightweight medical textbook reader for MBBS students, running directly on **GitHub Pages** with zero build configuration.
+An online medical textbook library with realistic page-turning for MBBS students.
 
 ---
 
 ## ✨ Features
 
-- **Realistic 3D Page Turn**: Smooth paper curl physics and curved shadows on Next/Prev clicks.
-- **Finger Touch Pinch & Pan**: Freely pinch-to-zoom (up to 4.0x) and pan across pages with fingers without accidental page flips.
-- **HD Diagram Magnifier**: Inspect fine anatomical labels and histological diagrams with multi-touch pinch zoom, pan swipe, and quick page navigation.
-- **Natural Paper Sound**: Lightweight procedural page-turning audio via Web Audio API (with 1-click mute).
-- **Responsive Spread**: Automatic two-page spread on desktop/tablets and single-page view on mobile.
-- **Study Tools**: Table of Contents, visual thumbnails, bookmarks, progress auto-resume (`localStorage`), and custom reading themes (Midnight, Warm Parchment, Crisp Paper).
+- **3D Page Turn**: Smooth, realistic page-turning when clicking Next/Prev buttons.
+- **Pinch to Zoom & Pan**: Pinch to zoom in on any page and drag freely to pan around.
+- **HD Diagram Magnifier**: Inspect detailed anatomical diagrams and illustrations up close.
+- **Page Sound**: Realistic paper flip sound effect (with mute toggle).
+- **Desktop & Mobile Friendly**: 2-page book spread on desktop, single-page view on phones.
+- **Reading Tools**: Chapters list, page thumbnails, bookmarks, and night/sepia reading themes.
+- **Saves Progress**: Automatically remembers your last read page.
 
 ---
 
-## 📂 Project Structure
+## ⌨️ Shortcuts
 
-```text
-mbbs-books/
-├── index.html                   # Main application entry point
-├── assets/
-│   ├── css/style.css            # Android 17 Material Design 3 UI
-│   ├── js/
-│   │   ├── catalog.js           # MBBS curriculum & book list
-│   │   ├── reader.js            # Flipbook, gesture zoom & magnifier
-│   │   ├── audio.js             # Web Audio sound synthesizer
-│   │   └── app.js               # Portal search & shelf controller
-│   └── vendor/
-│       └── page-flip.browser.js # StPageFlip engine
-└── books/                       # WebP textbook pages by year & subject
-```
+| Key | Action |
+| --- | --- |
+| `→` / `Space` / `PgDn` | Next Page |
+| `←` / `PgUp` | Previous Page |
+| `Z` | Open Diagram Magnifier |
+| `Double Tap / Click` | Quick Zoom |
+| `M` | Mute / Unmute Sound |
+| `F` | Fullscreen |
+| `Esc` | Close / Exit |
 
 ---
 
-## ➕ Adding New Books
+## ➕ Adding Books
 
-1. Convert PDF pages to WebP (`1.webp`, `2.webp`, etc.).
-2. Place them into `books/<year>/<subject>/<book-id>/`.
-3. Register the book in `assets/js/catalog.js`:
+1. Place page images (`1.webp`, `2.webp`, etc.) in `books/<year>/<subject>/<book-name>/`.
+2. Add book details to `assets/js/catalog.js`:
    ```javascript
    {
      id: "guyton-hall",
@@ -49,17 +44,3 @@ mbbs-books/
      available: true
    }
    ```
-
----
-
-## ⌨️ Shortcuts
-
-| Key | Action |
-| --- | --- |
-| `→` / `Space` / `PgDn` | Next Page |
-| `←` / `PgUp` | Previous Page |
-| `Z` | Toggle HD Diagram Magnifier |
-| `Double Tap / Click` | Toggle 2.2x Zoom |
-| `M` | Toggle Page Turn Sound |
-| `F` | Fullscreen |
-| `Esc` | Close Magnifier / Exit Reader |
