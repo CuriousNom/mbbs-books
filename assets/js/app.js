@@ -203,7 +203,7 @@ class MBBSLibraryApp {
 
           const coverHTML = book.cover ? `
             <div class="book-card-cover-wrap">
-              <div class="book-card-cover-3d" data-book-id="${book.id}">
+              <div class="book-cover-container" data-book-id="${book.id}">
                 <img src="${book.cover}" alt="${book.title}" loading="lazy" />
               </div>
             </div>
@@ -242,12 +242,12 @@ class MBBSLibraryApp {
             </div>
           `;
 
-          // Click on 3D cover or Read button opens reader
+          // Click on cover or Read button opens reader
           if (book.available) {
             bookCard.querySelector('.btn-read-book')?.addEventListener('click', () => {
               window.mbbsReader.openBook(book, lastReadPage);
             });
-            bookCard.querySelector('.book-card-cover-3d')?.addEventListener('click', () => {
+            bookCard.querySelector('.book-cover-container')?.addEventListener('click', () => {
               window.mbbsReader.openBook(book, lastReadPage);
             });
           }

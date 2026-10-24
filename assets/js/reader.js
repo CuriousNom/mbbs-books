@@ -345,33 +345,7 @@ class MBBSReader {
   }
 
   updateDepthStacks(pageIndex) {
-    if (!this.depthStackLeft || !this.depthStackRight) return;
-
-    if (this.pageFlip && this.pageFlip.getOrientation() === 'portrait') {
-      this.spineCrease.style.opacity = '0';
-      this.depthStackLeft.style.display = 'none';
-      this.depthStackRight.style.display = 'none';
-      return;
-    }
-
-    this.depthStackLeft.style.display = 'block';
-    this.depthStackRight.style.display = 'block';
-
-    const progress = pageIndex / Math.max(1, this.totalPages - 1);
-    
-    // Calculate stack thickness (1px to 16px)
-    const leftWidth = Math.max(1, Math.round(progress * 15));
-    const rightWidth = Math.max(1, Math.round((1 - progress) * 15));
-
-    this.depthStackLeft.style.width = `${leftWidth}px`;
-    this.depthStackRight.style.width = `${rightWidth}px`;
-
-    // Hide spine crease on cover page
-    if (pageIndex === 0 || pageIndex === this.totalPages - 1) {
-      this.spineCrease.style.opacity = '0';
-    } else {
-      this.spineCrease.style.opacity = '1';
-    }
+    // Deprecated: faux-3D depth stacks removed in modern Material 3 UI
   }
 
   flipPrev() {
