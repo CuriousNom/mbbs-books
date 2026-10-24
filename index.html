@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MBBS Book Library | Medical Textbook Reader</title>
+  <meta name="description" content="Clean, minimalist digital medical library for MBBS students. Read BD Chaurasia Anatomy, Physiology, and clinical textbooks with page turning, HD diagram zoom, and bookmarks.">
+  <meta name="theme-color" content="#0f172a">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+
+  <!-- FontAwesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- Realistic PageFlip Physics Engine -->
+  <script src="assets/vendor/page-flip.browser.js"></script>
+</head>
+<body>
+
+  <!-- =========================================================================
+       Site Header
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="#" class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-staff-snake"></i>
+        </div>
+        <div class="brand-text">
+          <h1>MBBS Book Library</h1>
+          <span>Interactive Medical Reader</span>
+        </div>
+      </a>
+
+      <div class="header-search">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="Search textbooks, topics, authors (e.g. BDC, Anatomy, Thorax)..." autocomplete="off">
+      </div>
+
+      <div class="header-actions">
+        <a href="https://github.com/CuriousNom/mbbs-books" target="_blank" class="btn-header" title="GitHub Repository">
+          <i class="fa-brands fa-github"></i>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       Hero Section & Stats
+       ========================================================================= -->
+  <section class="hero-section">
+    <div class="hero-banner">
+      <div class="hero-tag">
+        <i class="fa-solid fa-graduation-cap"></i> CBME Curriculum & NMC Aligned
+      </div>
+      <h2 class="hero-title">
+        The Digital Medical Library for <span>MBBS Students</span>
+      </h2>
+      <p class="hero-desc">
+        A distraction-free medical reading portal with smooth page turns, high-definition diagram zooming, and custom bookmarks designed for anatomy dissection, clinical studies, and revision.
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat-box">
+          <div class="stat-icon"><i class="fa-solid fa-book"></i></div>
+          <div>
+            <div class="stat-val" id="stat-books-available">3</div>
+            <div class="stat-lbl">Active Textbooks</div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div>
+          <div>
+            <div class="stat-val" id="stat-total-pages">1,580+</div>
+            <div class="stat-lbl">High-Res Scanned Pages</div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-icon"><i class="fa-solid fa-user-doctor"></i></div>
+          <div>
+            <div class="stat-val">4 Years</div>
+            <div class="stat-lbl">MBBS Curriculum</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Year Filter Navigation
+       ========================================================================= -->
+  <nav class="filter-bar" id="filter-pills">
+    <button class="year-pill active" data-year="all">
+      <i class="fa-solid fa-layer-group"></i> All Years
+    </button>
+    <button class="year-pill" data-year="1st-year">
+      <i class="fa-solid fa-brain"></i> 1st Year MBBS
+    </button>
+    <button class="year-pill" data-year="2nd-year">
+      <i class="fa-solid fa-microscope"></i> 2nd Year MBBS
+    </button>
+    <button class="year-pill" data-year="3rd-year">
+      <i class="fa-solid fa-eye"></i> 3rd Year MBBS
+    </button>
+    <button class="year-pill" data-year="4th-year">
+      <i class="fa-solid fa-stethoscope"></i> Final Year MBBS
+    </button>
+  </nav>
+
+  <!-- =========================================================================
+       Continue Reading Shelf (Auto-saved from localStorage)
+       ========================================================================= -->
+  <section class="continue-shelf" id="continue-shelf" style="display: none;">
+    <div class="section-head">
+      <h3><i class="fa-solid fa-clock-rotate-left"></i> Continue Reading</h3>
+    </div>
+    <div class="recent-cards-container" id="recent-cards-container"></div>
+  </section>
+
+  <!-- =========================================================================
+       Master Book Catalog Grid
+       ========================================================================= -->
+  <main class="catalog-container" id="catalog-container">
+    <!-- Populated dynamically by app.js -->
+  </main>
+
+  <!-- =========================================================================
+       REALISTIC 3D FLIPBOOK READER OVERLAY
+       ========================================================================= -->
+  <div id="reader-modal" class="theme-default">
+    <!-- Top Toolbar -->
+    <div class="reader-top-bar">
+      <div class="reader-top-left">
+        <button id="btn-reader-back" class="btn-reader-back" title="Back to Library (Esc)">
+          <i class="fa-solid fa-arrow-left"></i>
+          <span>Library</span>
+        </button>
+        <div class="reader-book-details">
+          <div class="reader-book-title" id="reader-book-title">BD Chaurasia Human Anatomy</div>
+          <div class="reader-book-chapter" id="reader-book-chapter">Upper Limb & Thorax</div>
+        </div>
+      </div>
+
+      <div class="reader-top-center">
+        <div class="page-indicator-pill" id="reader-page-indicator">Page 1 of 378</div>
+      </div>
+
+      <div class="reader-top-right">
+        <button id="btn-bookmark-toggle" class="btn-tool" title="Bookmark this Page">
+          <i class="fa-solid fa-bookmark"></i>
+        </button>
+        <button id="btn-zoom-toggle" class="btn-tool" title="HD Diagram Magnifier (Z)">
+          <i class="fa-solid fa-magnifying-glass-plus"></i>
+        </button>
+        <button id="btn-theme-toggle" class="btn-tool" title="Switch Reading Theme">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+        <button id="btn-sound-toggle" class="btn-tool" title="Page Flip Sound (M)">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+        <button id="btn-fullscreen-toggle" class="btn-tool" title="Fullscreen Mode (F)">
+          <i class="fa-solid fa-expand"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Flipbook Reading Stage -->
+    <div class="reader-stage-container">
+      <!-- Navigation Turn Buttons -->
+      <button id="btn-flip-prev" class="btn-flip-nav btn-flip-prev" title="Previous Page (Left Arrow)">
+        <i class="fa-solid fa-chevron-left"></i>
+      </button>
+
+      <div class="book-stage-wrapper" id="book-3d-wrapper">
+        <!-- StPageFlip canvas mounts here -->
+        <div id="book-flip-container"></div>
+      </div>
+
+      <!-- Floating Material 3 Zoom Gesture Controls Dock -->
+      <div class="floating-zoom-pill" id="floating-zoom-pill">
+        <button id="btn-stage-zoom-out" class="zoom-pill-btn" title="Zoom Out (or pinch with fingers)"><i class="fa-solid fa-minus"></i></button>
+        <span id="zoom-level-text" class="zoom-level-indicator">100%</span>
+        <button id="btn-stage-zoom-in" class="zoom-pill-btn" title="Zoom In (or pinch with fingers)"><i class="fa-solid fa-plus"></i></button>
+        <button id="btn-stage-zoom-reset" class="zoom-pill-btn" title="Reset View (Double Tap)"><i class="fa-solid fa-arrows-rotate"></i></button>
+      </div>
+
+      <button id="btn-flip-next" class="btn-flip-nav btn-flip-next" title="Next Page (Right Arrow / Space)">
+        <i class="fa-solid fa-chevron-right"></i>
+      </button>
+    </div>
+
+    <!-- Bottom Scrubber & Quick Tools Bar -->
+    <div class="reader-bottom-bar">
+      <div class="bottom-drawer-toggles">
+        <button id="btn-toggle-chapters" class="btn-drawer-tab" title="Table of Contents">
+          <i class="fa-solid fa-list-ul"></i>
+          <span>Chapters</span>
+        </button>
+        <button id="btn-toggle-thumbnails" class="btn-drawer-tab" title="Page Thumbnails">
+          <i class="fa-solid fa-grip"></i>
+          <span>Pages</span>
+        </button>
+        <button id="btn-toggle-bookmarks" class="btn-drawer-tab" title="Saved Bookmarks">
+          <i class="fa-solid fa-ribbon"></i>
+          <span>Bookmarks</span>
+        </button>
+      </div>
+
+      <div class="bottom-scrubber-group">
+        <input type="range" id="reader-page-slider" class="page-slider" min="1" max="378" value="1">
+        <form id="form-jump" class="jump-input-form">
+          <span>Go to:</span>
+          <input type="number" id="reader-jump-input" class="jump-input" min="1" max="378" value="1">
+          <span id="reader-jump-total" style="font-size:0.75rem; color:#94a3b8;">/ 378</span>
+          <button type="submit" class="btn-jump">Jump</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Side Drawer: Chapters / Table of Contents -->
+    <aside id="drawer-chapters" class="reader-drawer">
+      <div class="drawer-header">
+        <h4><i class="fa-solid fa-list-ul" style="color:#60a5fa;"></i> Table of Contents</h4>
+        <button class="btn-drawer-close">&times;</button>
+      </div>
+      <div class="drawer-content" id="drawer-chapters-list"></div>
+    </aside>
+
+    <!-- Side Drawer: Thumbnails Grid -->
+    <aside id="drawer-thumbnails" class="reader-drawer drawer-thumbnails">
+      <div class="drawer-header">
+        <h4><i class="fa-solid fa-grip" style="color:#60a5fa;"></i> Visual Page Previews</h4>
+        <button class="btn-drawer-close">&times;</button>
+      </div>
+      <div class="drawer-content">
+        <div class="thumb-grid" id="drawer-thumbnails-grid"></div>
+      </div>
+    </aside>
+
+    <!-- Side Drawer: Bookmarks -->
+    <aside id="drawer-bookmarks" class="reader-drawer">
+      <div class="drawer-header">
+        <h4><i class="fa-solid fa-ribbon" style="color:#fbbf24;"></i> Saved Bookmarks</h4>
+        <button class="btn-drawer-close">&times;</button>
+      </div>
+      <div class="drawer-content" id="drawer-bookmarks-list"></div>
+    </aside>
+  </div>
+
+  <!-- =========================================================================
+       HD DIAGRAM MAGNIFIER (FULL RESOLUTION ZOOM & PAN)
+       ========================================================================= -->
+  <div id="zoom-modal">
+    <div class="zoom-top-bar">
+      <div class="zoom-title" id="zoom-title">
+        <i class="fa-solid fa-magnifying-glass-plus"></i> HD Diagram Magnifier
+      </div>
+      <div class="zoom-controls">
+        <button id="btn-zoom-prev" class="zoom-btn" title="Previous Page (Left Arrow)"><i class="fa-solid fa-chevron-left"></i></button>
+        <button id="btn-zoom-next" class="zoom-btn" title="Next Page (Right Arrow)"><i class="fa-solid fa-chevron-right"></i></button>
+        <button id="btn-zoom-in" class="zoom-btn" title="Zoom In (or pinch with fingers)"><i class="fa-solid fa-plus"></i></button>
+        <button id="btn-zoom-out" class="zoom-btn" title="Zoom Out (or pinch with fingers)"><i class="fa-solid fa-minus"></i></button>
+        <button id="btn-zoom-reset" class="zoom-btn" title="Reset Zoom (Double Tap)"><i class="fa-solid fa-arrows-rotate"></i></button>
+        <button id="btn-zoom-close" class="zoom-btn" style="background:#dc2626;" title="Close Magnifier (Esc)">&times;</button>
+      </div>
+    </div>
+    <div class="zoom-viewport" id="zoom-viewport">
+      <img id="zoom-image" class="zoom-image" src="" alt="High Definition Medical Diagram" />
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="assets/js/catalog.js"></script>
+  <script src="assets/js/audio.js"></script>
+  <script src="assets/js/reader.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
