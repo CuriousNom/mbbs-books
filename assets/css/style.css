@@ -891,6 +891,39 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  max-width: 95vw;
+  max-height: calc(100vh - 140px);
+}
+
+#book-flip-container {
+  display: block;
+  position: relative;
+  margin: 0 auto;
+}
+
+.stf__parent {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  transform: translateZ(0);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 4px;
+}
+
+.stf__wrapper {
+  position: relative !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.stf__parent canvas {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  border-radius: 4px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
 }
 
 /* Center spine shadow (simulates the fold between pages) */

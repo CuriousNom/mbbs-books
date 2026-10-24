@@ -217,74 +217,70 @@ class MBBSReader {
       this.pageFlip = null;
     }
 
-    this.bookContainer.innerHTML = '';
+    // Ensure bookContainer exists in DOM
+    const wrapper = document.getElementById('book-3d-wrapper');
+    let container = document.getElementById('book-flip-container');
+    if (!container) {
+      container = document.createElement('div');
+      container.id = 'book-flip-container';
+      wrapper.appendChild(container);
+    }
+    container.innerHTML = '';
+    this.bookContainer = container;
 
     // Calculate responsive page dimensions
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
     
-    // Page aspect ratio 1 : 1.32 (BDC textbook standard)
-    let pageHeight = Math.min(viewportHeight - 140, 850);
+    // Page aspect ratio ~ 1 : 1.32 (BDC textbook standard)
+    let pageHeight = Math.min(Math.max(viewportHeight - 130, 480), 860);
     let pageWidth = Math.round(pageHeight / 1.32);
 
     if (viewportWidth < 800) {
-      // Mobile / portrait single page
-      pageWidth = Math.min(viewportWidth - 30, 480);
+      pageWidth = Math.min(viewportWidth - 24, 520);
       pageHeight = Math.round(pageWidth * 1.32);
       this.isSinglePage = true;
+      this.bookContainer.style.width = `${pageWidth}px`;
+      this.bookContainer.style.height = `${pageHeight}px`;
     } else {
+      // In 2-page spread, ensure 2 pages fit comfortably in viewport
+      if (pageWidth * 2 > viewportWidth - 80) {
+        pageWidth = Math.floor((viewportWidth - 80) / 2);
+        pageHeight = Math.round(pageWidth * 1.32);
+      }
       this.isSinglePage = false;
-    }
-
-    // Prepare HTML page elements for StPageFlip
-    const htmlPages = [];
-    for (let i = 1; i <= this.totalPages; i++) {
-      const pageDiv = document.createElement('div');
-      pageDiv.className = 'book-page-html';
-      // First and last pages are hard covers for authentic feel
-      if (i === 1 || i === this.totalPages) {
-        pageDiv.dataset.density = 'hard';
-      } else {
-        pageDiv.dataset.density = 'soft';
-      }
-
-      const img = document.createElement('img');
-      img.alt = `${this.currentBook.title} - Page ${i}`;
-      const imgSrc = `${this.currentBook.basePath}${i}.webp`;
-      img.src = imgSrc;
-      // First 6 pages near current are eager, rest are native lazy
-      if (Math.abs(i - 1 - this.currentPage) <= 4) {
-        img.loading = 'eager';
-      } else {
-        img.loading = 'lazy';
-      }
-      
-      pageDiv.appendChild(img);
-      htmlPages.push(pageDiv);
-      this.bookContainer.appendChild(pageDiv);
+      this.bookContainer.style.width = `${pageWidth * 2}px`;
+      this.bookContainer.style.height = `${pageHeight}px`;
     }
 
     // Create PageFlip instance
+    const usePortrait = viewportWidth < 800;
     this.pageFlip = new St.PageFlip(this.bookContainer, {
       width: pageWidth,
       height: pageHeight,
       size: 'fixed',
-      minWidth: 320,
+      minWidth: 280,
       maxWidth: 1000,
-      minHeight: 420,
-      maxHeight: 1200,
+      minHeight: 380,
+      maxHeight: 1300,
       drawShadow: true,
-      maxShadowOpacity: 0.65,
-      showCover: true,
-      usePortrait: true,
+      maxShadowOpacity: 0.5,
+      showCover: false,
+      usePortrait: usePortrait,
       startPage: this.currentPage,
-      flippingTime: 700,
-      swipeDistance: 35,
+      flippingTime: 650,
+      swipeDistance: 30,
       mobileScrollSupport: false
     });
 
-    // Load elements into PageFlip
-    this.pageFlip.loadFromHTML(this.bookContainer.querySelectorAll('.book-page-html'));
+    // Generate image URLs
+    const imageUrls = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      imageUrls.push(`${this.currentBook.basePath}${i}.webp`);
+    }
+
+    // Load into PageFlip Canvas renderer
+    this.pageFlip.loadFromImages(imageUrls);
 
     // Event listener: On page flip
     this.pageFlip.on('flip', (e) => {
@@ -305,7 +301,6 @@ class MBBSReader {
 
     this.updatePageInfoUI(this.currentPage);
     this.updateDepthStacks(this.currentPage);
-    this.preloadAdjacentPages(this.currentPage);
   }
 
   onPageFlipped(pageIndex) {
@@ -317,7 +312,6 @@ class MBBSReader {
 
     this.updatePageInfoUI(pageIndex);
     this.updateDepthStacks(pageIndex);
-    this.preloadAdjacentPages(pageIndex);
 
     // Save progress
     if (this.currentBook) {
@@ -347,21 +341,6 @@ class MBBSReader {
     const currentChapter = this.getCurrentChapter(displayPage);
     if (currentChapter) {
       this.bookChapterEl.textContent = currentChapter.title;
-    }
-  }
-
-  preloadAdjacentPages(centerIndex) {
-    if (!this.bookContainer) return;
-    const allImages = this.bookContainer.querySelectorAll('.book-page-html img');
-    // Preload centerIndex +/- 8 pages for instant zero-lag turning
-    const start = Math.max(0, centerIndex - 8);
-    const end = Math.min(this.totalPages - 1, centerIndex + 8);
-
-    for (let i = start; i <= end; i++) {
-      const img = allImages[i];
-      if (img && !img.src && img.dataset.src) {
-        img.src = img.dataset.src;
-      }
     }
   }
 
@@ -411,7 +390,6 @@ class MBBSReader {
     if (this.pageFlip) {
       const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
       this.pageFlip.turnToPage(target);
-      this.preloadAdjacentPages(target);
     }
   }
 
