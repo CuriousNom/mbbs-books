@@ -939,48 +939,37 @@ body {
   margin: 0 auto;
 }
 
-.stf__parent {
+/* Modern Clean High-Res Book Spread Viewer */
+.modern-book-spread {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
-  display: block;
-  box-sizing: border-box;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.4) !important;
   border-radius: var(--shape-m);
-  touch-action: none;
-}
-
-.stf__wrapper {
-  position: relative !important;
-  width: 100% !important;
-  height: 100% !important;
-  box-sizing: border-box !important;
-}
-
-.stf__block {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box;
-  perspective: 2000px;
-}
-
-.stf__item {
-  display: none;
-  position: absolute;
-  transform-style: preserve-3d;
-  background: #ffffff;
-}
-
-.book-page-html {
-  width: 100%;
-  height: 100%;
-  background: #ffffff;
+  background: transparent;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
-  position: relative;
+  touch-action: none;
+  transition: opacity 0.15s ease-out;
 }
 
-.book-page-html img {
+.modern-book-spread.page-transitioning {
+  opacity: 0.85;
+}
+
+.page-container {
+  position: relative;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.spread-page-image {
   width: 100%;
   height: 100%;
   object-fit: contain;
@@ -988,16 +977,27 @@ body {
   user-select: none;
   -webkit-user-drag: none;
   pointer-events: none;
-  image-rendering: auto;
+  image-rendering: high-quality;
+  transform: translateZ(0);
 }
 
-.stf__parent canvas {
-  position: absolute;
-  width: 100%;
+.book-center-spine {
+  width: 2px;
   height: 100%;
-  left: 0;
-  top: 0;
-  border-radius: var(--shape-m);
+  background: rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+/* Single page mode (e.g. mobile or cover) */
+.modern-book-spread.single-page .page-left,
+.modern-book-spread.single-page .book-center-spine {
+  display: none !important;
+}
+
+.modern-book-spread.single-page {
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
 }
 
 /* M3 Circular Turn Floating Navigation Arrows */

@@ -32,14 +32,12 @@ mbbs-books/
 ├── index.html                           # Main web application entry point
 ├── assets/
 │   ├── css/
-│   │   └── style.css                    # UI and 3D flipbook styling
-│   ├── js/
-│   │   ├── catalog.js                   # Master MBBS curriculum metadata
-│   │   ├── audio.js                     # Realistic Web Audio paper rustle synthesizer
-│   │   ├── reader.js                    # 3D Flipbook, HD zoom, bookmarks controller
-│   │   └── app.js                       # Library portal & search application
-│   └── vendor/
-│       └── page-flip.browser.js         # StPageFlip 3D engine (local copy)
+│   │   └── style.css                    # Material 3 UI and book reader styling
+│   └── js/
+│       ├── catalog.js                   # Master MBBS curriculum metadata
+│       ├── audio.js                     # Realistic Web Audio paper rustle synthesizer
+│       ├── reader.js                    # High-res reader, gesture zoom, bookmarks controller
+│       └── app.js                       # Library portal & search application
 └── books/
     ├── 1st-year-mbbs/
     │   ├── anatomy/

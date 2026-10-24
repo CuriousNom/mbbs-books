@@ -121,6 +121,14 @@ class MBBSReader {
     document.getElementById('btn-zoom-out')?.addEventListener('click', () => this.adjustZoom(-0.25));
     document.getElementById('btn-zoom-reset')?.addEventListener('click', () => this.resetZoom());
 
+    // Window resize / orientation change
+    window.addEventListener('resize', () => {
+      if (this.modal?.classList.contains('active')) {
+        this.updateSpreadDimensions();
+        this.renderCurrentSpread();
+      }
+    });
+
     // Bookmark toggle
     document.getElementById('btn-bookmark-toggle')?.addEventListener('click', () => this.toggleCurrentBookmark());
 
@@ -237,16 +245,6 @@ class MBBSReader {
   }
 
   initFlipbook() {
-    // Clear existing flipbook instance if any
-    if (this.pageFlip) {
-      try {
-        this.pageFlip.destroy();
-      } catch (e) {
-        console.warn('Destroy flipbook err:', e);
-      }
-      this.pageFlip = null;
-    }
-
     // Ensure bookContainer exists in DOM
     const wrapper = document.getElementById('book-3d-wrapper');
     let container = document.getElementById('book-flip-container');
@@ -255,135 +253,180 @@ class MBBSReader {
       container.id = 'book-flip-container';
       wrapper.appendChild(container);
     }
-    container.innerHTML = '';
     this.bookContainer = container;
 
-    // Calculate responsive page dimensions
+    // Render clean, modern high-res book spread structure
+    this.bookContainer.innerHTML = `
+      <div class="modern-book-spread" id="modern-book-spread">
+        <div class="page-container page-left" id="page-container-left">
+          <img id="page-image-left" class="spread-page-image" alt="Left Page" />
+        </div>
+        <div class="book-center-spine" id="book-center-spine"></div>
+        <div class="page-container page-right" id="page-container-right">
+          <img id="page-image-right" class="spread-page-image" alt="Right Page" />
+        </div>
+      </div>
+    `;
+
+    this.spreadEl = document.getElementById('modern-book-spread');
+    this.pageContainerLeft = document.getElementById('page-container-left');
+    this.pageContainerRight = document.getElementById('page-container-right');
+    this.pageImageLeft = document.getElementById('page-image-left');
+    this.pageImageRight = document.getElementById('page-image-right');
+    this.spineEl = document.getElementById('book-center-spine');
+
+    // Update layout dimensions
+    this.updateSpreadDimensions();
+
+    // Render current spread with crystal-clear high-res WebP
+    this.renderCurrentSpread();
+  }
+
+  updateSpreadDimensions() {
+    if (!this.spreadEl || !this.bookContainer) return;
     const viewportWidth = window.innerWidth;
     const viewportHeight = window.innerHeight;
-    
-    // Page aspect ratio ~ 1 : 1.32 (BDC textbook standard)
-    let pageHeight = Math.min(Math.max(viewportHeight - 130, 480), 860);
-    let pageWidth = Math.round(pageHeight / 1.32);
+
+    // Aspect ratio of BDC textbook pages ~ 1 : 1.32
+    const pageAspect = 1.32;
+    const maxAvailableHeight = Math.min(Math.max(viewportHeight - 120, 480), 960);
 
     if (viewportWidth < 800) {
-      pageWidth = Math.min(viewportWidth - 24, 520);
-      pageHeight = Math.round(pageWidth * 1.32);
+      // Mobile / portrait single page mode
       this.isSinglePage = true;
-      this.bookContainer.style.width = `${pageWidth}px`;
-      this.bookContainer.style.height = `${pageHeight}px`;
+      let w = Math.min(viewportWidth - 20, 560);
+      let h = Math.round(w * pageAspect);
+      if (h > maxAvailableHeight) {
+        h = maxAvailableHeight;
+        w = Math.round(h / pageAspect);
+      }
+      this.pageWidth = w;
+      this.pageHeight = h;
+      this.spreadWidth = w;
+
+      this.spreadEl.classList.add('single-page');
+      this.spreadEl.style.width = `${w}px`;
+      this.spreadEl.style.height = `${h}px`;
+      this.pageContainerRight.style.width = `${w}px`;
+      this.pageContainerRight.style.height = `${h}px`;
+      this.bookContainer.style.width = `${w}px`;
+      this.bookContainer.style.height = `${h}px`;
     } else {
-      // In 2-page spread, ensure 2 pages fit comfortably in viewport
-      if (pageWidth * 2 > viewportWidth - 80) {
-        pageWidth = Math.floor((viewportWidth - 80) / 2);
-        pageHeight = Math.round(pageWidth * 1.32);
-      }
+      // Desktop / landscape dual-page spread
       this.isSinglePage = false;
-      this.bookContainer.style.width = `${pageWidth * 2}px`;
-      this.bookContainer.style.height = `${pageHeight}px`;
+      let h = maxAvailableHeight;
+      let w = Math.round(h / pageAspect);
+
+      // Ensure 2 pages fit within available viewport width
+      if (w * 2 > viewportWidth - 80) {
+        w = Math.floor((viewportWidth - 80) / 2);
+        h = Math.round(w * pageAspect);
+      }
+      this.pageWidth = w;
+      this.pageHeight = h;
+      this.spreadWidth = w * 2;
+
+      this.spreadEl.classList.remove('single-page');
+      this.spreadEl.style.width = `${w * 2}px`;
+      this.spreadEl.style.height = `${h}px`;
+      this.pageContainerLeft.style.width = `${w}px`;
+      this.pageContainerLeft.style.height = `${h}px`;
+      this.pageContainerRight.style.width = `${w}px`;
+      this.pageContainerRight.style.height = `${h}px`;
+      this.bookContainer.style.width = `${w * 2}px`;
+      this.bookContainer.style.height = `${h}px`;
+    }
+  }
+
+  renderCurrentSpread(animated = false) {
+    if (!this.currentBook || !this.spreadEl) return;
+
+    const displayPage = this.currentPage + 1; // 1-indexed (1 to totalPages)
+
+    if (animated) {
+      this.spreadEl.classList.add('page-transitioning');
+      setTimeout(() => this.spreadEl?.classList.remove('page-transitioning'), 180);
     }
 
-    // Prepare HTML page elements with on-demand WebP high-resolution images
-    this.bookContainer.innerHTML = '';
-    for (let i = 1; i <= this.totalPages; i++) {
-      const pageDiv = document.createElement('div');
-      pageDiv.className = 'book-page-html';
-      pageDiv.dataset.density = (i === 1 || i === this.totalPages) ? 'hard' : 'soft';
-
-      const img = document.createElement('img');
-      img.alt = `${this.currentBook.title} - Page ${i}`;
-      const imgSrc = `${this.currentBook.basePath}${i}.webp`;
-
-      if (Math.abs(i - 1 - this.currentPage) <= 6) {
-        img.src = imgSrc;
+    if (this.isSinglePage) {
+      // Single page mode (mobile)
+      this.spreadEl.classList.add('single-page');
+      this.pageImageRight.src = `${this.currentBook.basePath}${displayPage}.webp`;
+      this.pageImageRight.alt = `${this.currentBook.title} - Page ${displayPage}`;
+    } else {
+      // 2-page spread mode (desktop)
+      if (displayPage === 1) {
+        // Cover / Title Page: shown single centered/right
+        this.spreadEl.classList.add('single-page');
+        this.pageImageRight.src = `${this.currentBook.basePath}1.webp`;
+        this.pageImageRight.alt = `${this.currentBook.title} - Page 1`;
       } else {
-        img.dataset.src = imgSrc;
-      }
+        this.spreadEl.classList.remove('single-page');
+        const leftPage = displayPage % 2 === 0 ? displayPage : displayPage - 1;
+        const rightPage = leftPage + 1;
 
-      pageDiv.appendChild(img);
-      this.bookContainer.appendChild(pageDiv);
+        this.pageImageLeft.src = `${this.currentBook.basePath}${leftPage}.webp`;
+        this.pageImageLeft.alt = `${this.currentBook.title} - Page ${leftPage}`;
+
+        if (rightPage <= this.totalPages) {
+          this.pageContainerRight.style.visibility = 'visible';
+          this.pageImageRight.src = `${this.currentBook.basePath}${rightPage}.webp`;
+          this.pageImageRight.alt = `${this.currentBook.title} - Page ${rightPage}`;
+        } else {
+          // Last odd page with no facing page
+          this.pageContainerRight.style.visibility = 'hidden';
+          this.pageImageRight.src = '';
+        }
+      }
     }
-
-    // Create PageFlip instance
-    const usePortrait = viewportWidth < 800;
-    this.pageFlip = new St.PageFlip(this.bookContainer, {
-      width: pageWidth,
-      height: pageHeight,
-      size: 'fixed',
-      minWidth: 280,
-      maxWidth: 1200,
-      minHeight: 380,
-      maxHeight: 1400,
-      drawShadow: true,
-      maxShadowOpacity: 0.45,
-      showCover: false,
-      usePortrait: usePortrait,
-      startPage: this.currentPage,
-      flippingTime: 600,
-      swipeDistance: 30,
-      mobileScrollSupport: false
-    });
-
-    // Load HTML elements into PageFlip 3D Engine
-    this.pageFlip.loadFromHTML(this.bookContainer.querySelectorAll('.book-page-html'));
-
-    // Event listener: On page flip
-    this.pageFlip.on('flip', (e) => {
-      this.onPageFlipped(e.data);
-    });
-
-    // Event listener: On change state (for sound)
-    this.pageFlip.on('changeState', (e) => {
-      if (e.data === 'flipping') {
-        window.soundManager.playPageFlip();
-      }
-    });
 
     this.updatePageInfoUI(this.currentPage);
-    this.updateDepthStacks(this.currentPage);
-    this.preloadAdjacentPages(this.currentPage);
-  }
-
-  onPageFlipped(pageIndex) {
-    const prevPage = this.currentPage;
-    this.currentPage = pageIndex;
-    
-    // Play realistic paper flip sound
-    window.soundManager.playPageFlip(pageIndex >= prevPage ? 'forward' : 'backward');
-
-    this.updatePageInfoUI(pageIndex);
-    this.updateDepthStacks(pageIndex);
-    this.preloadAdjacentPages(pageIndex);
+    this.preloadAdjacentPages(displayPage);
 
     // Save progress
-    if (this.currentBook) {
-      this.saveLastReadPage(this.currentBook.id, pageIndex + 1);
-    }
-
-    // Update active chapter & bookmark indicator
-    this.highlightCurrentChapter();
-    this.updateBookmarkButtonUI();
-  }
-
-  preloadAdjacentPages(centerIndex) {
-    if (!this.bookContainer) return;
-    const allImages = this.bookContainer.querySelectorAll('.book-page-html img');
-    const start = Math.max(0, centerIndex - 10);
-    const end = Math.min(this.totalPages - 1, centerIndex + 10);
-
-    for (let i = start; i <= end; i++) {
-      const img = allImages[i];
-      if (img && !img.src && img.dataset.src) {
-        img.src = img.dataset.src;
-      }
-    }
+    this.saveLastReadPage(this.currentBook.id, displayPage);
   }
 
   turnToPage(pageIndex) {
-    if (this.pageFlip) {
-      const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
-      this.preloadAdjacentPages(target);
-      this.pageFlip.turnToPage(target);
+    const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
+    if (target === this.currentPage) return;
+
+    const forward = target > this.currentPage;
+    this.currentPage = target;
+
+    window.soundManager.playPageFlip(forward ? 'forward' : 'backward');
+    this.renderCurrentSpread(true);
+  }
+
+  flipNext() {
+    if (this.currentPage >= this.totalPages - 1) return;
+
+    let advance = 1;
+    if (!this.isSinglePage && this.currentPage > 0) {
+      advance = 2;
+    }
+    const target = Math.min(this.currentPage + advance, this.totalPages - 1);
+    this.turnToPage(target);
+  }
+
+  flipPrev() {
+    if (this.currentPage <= 0) return;
+
+    let back = 1;
+    if (!this.isSinglePage && this.currentPage > 1) {
+      back = 2;
+    }
+    const target = Math.max(0, this.currentPage - back);
+    this.turnToPage(target);
+  }
+
+  preloadAdjacentPages(centerPage) {
+    if (!this.currentBook) return;
+    const start = Math.max(1, centerPage - 4);
+    const end = Math.min(this.totalPages, centerPage + 6);
+    for (let i = start; i <= end; i++) {
+      const img = new Image();
+      img.src = `${this.currentBook.basePath}${i}.webp`;
     }
   }
 
@@ -392,43 +435,25 @@ class MBBSReader {
     this.pageSlider.value = displayPage;
     this.jumpInput.value = displayPage;
 
-    // Check if showing 2 pages in spread
-    if (this.pageFlip && this.pageFlip.getOrientation() === 'landscape' && displayPage > 1 && displayPage < this.totalPages) {
-      const left = pageIndex % 2 === 0 ? displayPage : displayPage - 1;
+    if (!this.isSinglePage && displayPage > 1 && displayPage < this.totalPages) {
+      const left = displayPage % 2 === 0 ? displayPage : displayPage - 1;
       const right = left + 1;
       this.pageIndicatorEl.textContent = `Pages ${left} - ${right} of ${this.totalPages}`;
     } else {
       this.pageIndicatorEl.textContent = `Page ${displayPage} of ${this.totalPages}`;
     }
 
-    // Dynamic current chapter title
     const currentChapter = this.getCurrentChapter(displayPage);
     if (currentChapter) {
       this.bookChapterEl.textContent = currentChapter.title;
     }
+
+    this.highlightCurrentChapter();
+    this.updateBookmarkButtonUI();
   }
 
   updateDepthStacks(pageIndex) {
     // Deprecated: faux-3D depth stacks removed in modern Material 3 UI
-  }
-
-  flipPrev() {
-    if (this.pageFlip) {
-      this.pageFlip.flipPrev();
-    }
-  }
-
-  flipNext() {
-    if (this.pageFlip) {
-      this.pageFlip.flipNext();
-    }
-  }
-
-  turnToPage(pageIndex) {
-    if (this.pageFlip) {
-      const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
-      this.pageFlip.turnToPage(target);
-    }
   }
 
   getCurrentChapter(page) {
@@ -645,7 +670,11 @@ class MBBSReader {
   initHandGestureZoom() {
     if (!this.stageContainer) return;
 
-    // --- Touch Gestures (Pinch to Zoom & One-Finger Pan) ---
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    // --- Touch Gestures (Pinch to Zoom & One-Finger Pan & Swipe to Turn) ---
     this.stageContainer.addEventListener('touchstart', (e) => {
       if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
 
@@ -678,8 +707,12 @@ class MBBSReader {
         this.lastTapX = touch.clientX;
         this.lastTapY = touch.clientY;
 
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartTime = now;
+
         if (this.stageZoom > 1.05) {
-          // In zoomed mode, drag pans freely without page curl
+          // In zoomed mode, drag pans freely
           e.preventDefault();
           e.stopPropagation();
           this.isPanning = true;
@@ -728,6 +761,20 @@ class MBBSReader {
         this.stageContainer?.classList.remove('panning');
         this.constrainPanBounds();
         this.applyStageTransform(true);
+      } else if (!this.isPanning && this.stageZoom <= 1.05 && e.touches.length === 0) {
+        const changedTouch = e.changedTouches?.[0];
+        if (changedTouch) {
+          const deltaX = changedTouch.clientX - touchStartX;
+          const deltaY = changedTouch.clientY - touchStartY;
+          const deltaTime = Date.now() - touchStartTime;
+          if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3 && deltaTime < 450) {
+            if (deltaX < 0) {
+              this.flipNext();
+            } else {
+              this.flipPrev();
+            }
+          }
+        }
       }
     };
 
