@@ -122,11 +122,14 @@ class MBBSReader {
     document.getElementById('btn-zoom-out')?.addEventListener('click', () => this.adjustZoom(-0.25));
     document.getElementById('btn-zoom-reset')?.addEventListener('click', () => this.resetZoom());
 
-    // Window resize / orientation change
+    // Window resize / orientation change (debounced)
+    let resizeTimer;
     window.addEventListener('resize', () => {
       if (this.modal?.classList.contains('active')) {
-        this.updateSpreadDimensions();
-        this.renderCurrentSpread();
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+          this.initFlipbook();
+        }, 250);
       }
     });
 
