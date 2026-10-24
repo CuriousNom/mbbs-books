@@ -1,0 +1,1408 @@
+/* MBBS Book Library - Master Stylesheet */
+
+:root {
+  --primary: #2563eb;
+  --primary-hover: #1d4ed8;
+  --primary-light: #eff6ff;
+  --accent: #0d9488;
+  --bg-main: #0f172a;
+  --bg-card: #1e293b;
+  --bg-card-hover: #273549;
+  --border: #334155;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-serif: 'Merriweather', Georgia, serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  line-height: 1.5;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ==========================================================================
+   Library Portal Navigation & Header
+   ========================================================================== */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0.85rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #2563eb, #0d9488);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+}
+
+.brand-text h1 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  background: linear-gradient(to right, #ffffff, #cbd5e1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-text span {
+  font-size: 0.75rem;
+  color: #38bdf8;
+  font-weight: 500;
+  display: block;
+}
+
+.header-search {
+  flex: 1;
+  max-width: 480px;
+  position: relative;
+}
+
+.header-search i {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.65rem 1rem 0.65rem 2.6rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: rgba(30, 41, 59, 0.8);
+  color: white;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.search-input:focus {
+  border-color: var(--primary);
+  background: rgba(30, 41, 59, 1);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.btn-header {
+  padding: 0.5rem 0.9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.btn-header:hover {
+  background: var(--bg-card-hover);
+  border-color: #475569;
+}
+
+/* ==========================================================================
+   Hero Section & Quick Stats
+   ========================================================================== */
+
+.hero-section {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem 1.5rem;
+}
+
+.hero-banner {
+  background: radial-gradient(circle at top right, rgba(37, 99, 235, 0.18), transparent 50%),
+              radial-gradient(circle at bottom left, rgba(13, 148, 136, 0.15), transparent 50%),
+              linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2.2rem 2.5rem;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.hero-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.8rem;
+  background: rgba(37, 99, 235, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.35);
+  border-radius: 9999px;
+  color: #60a5fa;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.hero-title {
+  font-size: 2.25rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
+}
+
+.hero-title span {
+  background: linear-gradient(135deg, #60a5fa, #2dd4bf);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-desc {
+  font-size: 1rem;
+  color: var(--text-muted);
+  max-width: 650px;
+  margin-bottom: 1.5rem;
+}
+
+.hero-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-box {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 0.75rem 1.2rem;
+  border-radius: 12px;
+}
+
+.stat-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.stat-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+}
+
+.stat-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 0.2rem;
+}
+
+/* ==========================================================================
+   Filter Pills & Year Navigation
+   ========================================================================== */
+
+.filter-bar {
+  max-width: 1300px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+.year-pill {
+  padding: 0.6rem 1.2rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.year-pill:hover {
+  background: var(--bg-card-hover);
+  color: white;
+  border-color: #475569;
+}
+
+.year-pill.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+}
+
+/* ==========================================================================
+   Continue Reading Shelf
+   ========================================================================== */
+
+.continue-shelf {
+  max-width: 1300px;
+  margin: 1.5rem auto 0;
+  padding: 0 1.5rem;
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.section-head h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-head h3 i {
+  color: #38bdf8;
+}
+
+.recent-cards-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+.recent-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.1rem;
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.recent-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary);
+}
+
+.recent-thumb {
+  width: 55px;
+  height: 75px;
+  border-radius: 6px;
+  object-fit: cover;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  flex-shrink: 0;
+}
+
+.recent-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.recent-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: white;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.2rem;
+}
+
+.recent-progress-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 0.4rem;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 0.6rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, var(--primary), var(--accent));
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.btn-resume {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease;
+}
+
+.btn-resume:hover {
+  background: var(--primary-hover);
+}
+
+/* ==========================================================================
+   Library Catalog Grid & Year Groups
+   ========================================================================== */
+
+.catalog-container {
+  max-width: 1300px;
+  margin: 2rem auto;
+  padding: 0 1.5rem 4rem;
+}
+
+.year-block {
+  margin-bottom: 3.5rem;
+}
+
+.year-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.75rem;
+}
+
+.year-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.year-header-title h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.year-header-badge {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  background: rgba(37, 99, 235, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.subject-block {
+  margin-bottom: 2.5rem;
+}
+
+.subject-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin-bottom: 1.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: #e2e8f0;
+}
+
+.subject-title i {
+  color: var(--accent);
+}
+
+.books-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1.75rem;
+}
+
+/* 3D Realistic Book Card */
+.book-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.book-card:hover {
+  transform: translateY(-6px);
+  border-color: #475569;
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(59, 130, 246, 0.2);
+}
+
+.book-card-cover-wrap {
+  width: 100%;
+  height: 240px;
+  perspective: 1000px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.2rem;
+  background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 70%);
+  border-radius: 10px;
+}
+
+/* Realistic 3D Tilt Book Cover */
+.book-card-cover-3d {
+  width: 160px;
+  height: 220px;
+  position: relative;
+  border-radius: 3px 8px 8px 3px;
+  box-shadow: 
+    -6px 8px 18px rgba(0, 0, 0, 0.5),
+    -1px 0 2px rgba(0,0,0,0.4),
+    inset -2px 0 5px rgba(0,0,0,0.15);
+  transform: rotateY(-18deg) rotateX(8deg);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+.book-card:hover .book-card-cover-3d {
+  transform: rotateY(-6deg) rotateX(4deg) scale(1.05);
+  box-shadow: 
+    -12px 16px 28px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(37, 99, 235, 0.2);
+}
+
+.book-card-cover-3d img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 3px 8px 8px 3px;
+  display: block;
+}
+
+/* Spine effect on 3D book cover */
+.book-card-cover-3d::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 18px;
+  height: 100%;
+  background: linear-gradient(to right, rgba(0,0,0,0.3) 0%, rgba(255,255,255,0.1) 40%, rgba(0,0,0,0.2) 100%);
+  border-radius: 3px 0 0 3px;
+  pointer-events: none;
+}
+
+/* Book pages thickness representation */
+.book-card-cover-3d::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: -10px;
+  width: 10px;
+  height: calc(100% - 6px);
+  background: repeating-linear-gradient(to right, #ddd, #ddd 1px, #eee 1px, #eee 2px);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+  transform: rotateY(90deg) translateZ(5px);
+}
+
+.book-placeholder-cover {
+  width: 160px;
+  height: 220px;
+  background: linear-gradient(135deg, #1e293b, #334155);
+  border: 2px dashed #475569;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  gap: 0.5rem;
+  padding: 1rem;
+  text-align: center;
+}
+
+.book-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.badge-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.badge-ready {
+  background: rgba(16, 185, 129, 0.18);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.badge-coming {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.badge-pages {
+  background: rgba(255, 255, 255, 0.08);
+  color: #cbd5e1;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+}
+
+.book-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: white;
+  margin-bottom: 0.35rem;
+}
+
+.book-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-meta {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  margin-top: auto;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.book-author {
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.book-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.btn-read-book {
+  flex: 1;
+  padding: 0.65rem 1rem;
+  background: var(--primary);
+  color: white;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+}
+
+.btn-read-book:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.45);
+}
+
+.btn-read-book:disabled {
+  background: #334155;
+  color: #64748b;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn-chapters-menu {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-chapters-menu:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+}
+
+/* ==========================================================================
+   REALISTIC 3D FLIPBOOK READER OVERLAY & STAGE
+   ========================================================================== */
+
+#reader-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+#reader-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Themes for reading */
+.theme-default {
+  --reader-bg: #0b101b;
+  --reader-bar: rgba(15, 23, 42, 0.95);
+  --reader-text: #f8fafc;
+  --reader-border: #334155;
+}
+
+.theme-sepia {
+  --reader-bg: #221811;
+  --reader-bar: rgba(43, 30, 22, 0.95);
+  --reader-text: #faecd8;
+  --reader-border: #573e2d;
+}
+
+.theme-light {
+  --reader-bg: #e2e8f0;
+  --reader-bar: rgba(248, 250, 252, 0.95);
+  --reader-text: #0f172a;
+  --reader-border: #cbd5e1;
+}
+
+#reader-modal {
+  background-color: var(--reader-bg);
+  color: var(--reader-text);
+}
+
+/* Reader Top Bar */
+.reader-top-bar {
+  height: 56px;
+  background: var(--reader-bar);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--reader-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  z-index: 20;
+}
+
+.reader-top-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-reader-back {
+  padding: 0.45rem 0.8rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--reader-border);
+  color: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-reader-back:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.reader-book-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.reader-book-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.reader-book-chapter {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.reader-top-center {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.page-indicator-pill {
+  padding: 0.35rem 0.85rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--reader-border);
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: monospace;
+}
+
+.reader-top-right {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-tool {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--reader-border);
+  color: inherit;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.btn-tool:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-tool.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Main Flipbook Stage */
+.reader-stage-container {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 1.5rem 1rem;
+}
+
+/* Realistic 3D Book Frame */
+.book-3d-wrapper {
+  position: relative;
+  perspective: 2500px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Center spine shadow (simulates the fold between pages) */
+.book-spine-crease {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 60px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  z-index: 15;
+  background: linear-gradient(
+    to right,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.05) 30%,
+    rgba(0, 0, 0, 0.35) 48%,
+    rgba(0, 0, 0, 0.55) 50%,
+    rgba(0, 0, 0, 0.35) 52%,
+    rgba(0, 0, 0, 0.05) 70%,
+    rgba(0, 0, 0, 0) 100%
+  );
+}
+
+/* Layered Paper Edge Stacks (Simulates real book thickness on left & right) */
+.book-depth-stack-left {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: -12px;
+  width: 12px;
+  background: repeating-linear-gradient(
+    to right,
+    #b0b0b0,
+    #b0b0b0 1px,
+    #f2f2f2 1px,
+    #f2f2f2 2px
+  );
+  border-radius: 4px 0 0 4px;
+  box-shadow: -8px 6px 20px rgba(0,0,0,0.45);
+  transform: skewY(1.2deg);
+  pointer-events: none;
+  z-index: 5;
+  transition: width 0.3s ease;
+}
+
+.book-depth-stack-right {
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  right: -12px;
+  width: 12px;
+  background: repeating-linear-gradient(
+    to right,
+    #f2f2f2,
+    #f2f2f2 1px,
+    #b0b0b0 1px,
+    #b0b0b0 2px
+  );
+  border-radius: 0 4px 4px 0;
+  box-shadow: 8px 6px 20px rgba(0,0,0,0.45);
+  transform: skewY(-1.2deg);
+  pointer-events: none;
+  z-index: 5;
+  transition: width 0.3s ease;
+}
+
+/* Realistic Page Styling */
+.stf__parent {
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6) !important;
+  border-radius: 6px;
+}
+
+.stf__item {
+  background-color: #fff !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+  background-size: contain !important;
+  overflow: hidden;
+}
+
+.book-page-html {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  overflow: hidden;
+}
+
+.book-page-html img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Subtle corner dog-ear fold hint */
+.corner-hint-left, .corner-hint-right {
+  position: absolute;
+  bottom: 0;
+  width: 40px;
+  height: 40px;
+  z-index: 25;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.corner-hint-left {
+  left: 0;
+  background: linear-gradient(135deg, rgba(0,0,0,0.15) 0%, transparent 60%);
+}
+
+.corner-hint-right {
+  right: 0;
+  background: linear-gradient(225deg, rgba(0,0,0,0.15) 0%, transparent 60%);
+}
+
+.corner-hint-left:hover, .corner-hint-right:hover {
+  opacity: 1;
+  transform: scale(1.15);
+}
+
+/* Floating Flip Navigation Arrows */
+.btn-flip-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 72px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--reader-border);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 30;
+  border-radius: 8px;
+  font-size: 1.25rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(8px);
+}
+
+.btn-flip-nav:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: translateY(-50%) scale(1.08);
+}
+
+.btn-flip-prev {
+  left: 1.5rem;
+}
+
+.btn-flip-next {
+  right: 1.5rem;
+}
+
+/* Reader Bottom Scrubber Bar */
+.reader-bottom-bar {
+  height: 60px;
+  background: var(--reader-bar);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--reader-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  gap: 1.5rem;
+  z-index: 20;
+}
+
+.bottom-scrubber-group {
+  flex: 1;
+  max-width: 650px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.page-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--primary);
+}
+
+.jump-input-form {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.jump-input {
+  width: 55px;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--reader-border);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  font-size: 0.82rem;
+  text-align: center;
+  font-family: monospace;
+}
+
+.btn-jump {
+  padding: 0.3rem 0.6rem;
+  border-radius: 6px;
+  background: var(--primary);
+  border: none;
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.bottom-drawer-toggles {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-drawer-tab {
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--reader-border);
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-drawer-tab:hover, .btn-drawer-tab.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* ==========================================================================
+   Side Drawers (Chapters, Thumbnails, Bookmarks)
+   ========================================================================== */
+
+.reader-drawer {
+  position: absolute;
+  top: 56px;
+  bottom: 60px;
+  width: 340px;
+  background: var(--reader-bar);
+  backdrop-filter: blur(16px);
+  border-right: 1px solid var(--reader-border);
+  z-index: 25;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.reader-drawer.open {
+  transform: translateX(0);
+}
+
+.reader-drawer-right {
+  left: auto;
+  right: 0;
+  border-right: none;
+  border-left: 1px solid var(--reader-border);
+  transform: translateX(100%);
+}
+
+.drawer-header {
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--reader-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.drawer-header h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-drawer-close {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.btn-drawer-close:hover {
+  color: white;
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* Chapter List */
+.chapter-item {
+  padding: 0.75rem 0.9rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.chapter-item:hover {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+.chapter-item.active {
+  background: var(--primary);
+  color: white;
+}
+
+.chapter-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chapter-page-badge {
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.25);
+  font-family: monospace;
+}
+
+/* Thumbnail Grid Drawer */
+.drawer-thumbnails {
+  width: 440px;
+}
+
+.thumb-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.thumb-item {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--reader-border);
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.thumb-item:hover, .thumb-item.active {
+  border-color: var(--primary);
+  transform: scale(1.03);
+}
+
+.thumb-item img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  display: block;
+}
+
+.thumb-num {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.7);
+  font-size: 0.68rem;
+  font-family: monospace;
+  text-align: center;
+  padding: 0.15rem 0;
+  color: white;
+}
+
+/* ==========================================================================
+   HD ZOOM / DIAGRAM MAGNIFIER MODAL
+   ========================================================================== */
+
+#zoom-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  background: rgba(0, 0, 0, 0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+#zoom-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.zoom-top-bar {
+  height: 52px;
+  background: rgba(15, 23, 42, 0.8);
+  border-bottom: 1px solid #334155;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+}
+
+.zoom-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #38bdf8;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.zoom-btn {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid #475569;
+  color: white;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.zoom-viewport {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  padding: 2rem;
+}
+
+.zoom-viewport:active {
+  cursor: grabbing;
+}
+
+.zoom-image {
+  max-width: 90%;
+  max-height: 90%;
+  transition: transform 0.15s ease-out;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .hero-banner {
+    padding: 1.5rem;
+  }
+  .hero-title {
+    font-size: 1.65rem;
+  }
+  .header-search {
+    display: none;
+  }
+  .reader-book-details {
+    max-width: 140px;
+  }
+  .bottom-scrubber-group {
+    max-width: 100%;
+  }
+  .btn-flip-prev {
+    left: 0.25rem;
+  }
+  .btn-flip-next {
+    right: 0.25rem;
+  }
+  .drawer-thumbnails {
+    width: 100%;
+  }
+  .thumb-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

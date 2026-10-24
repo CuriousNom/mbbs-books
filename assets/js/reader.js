@@ -1,0 +1,751 @@
+// MBBS Book Library - Realistic 3D Book Reader Controller
+
+class MBBSReader {
+  constructor() {
+    this.currentBook = null;
+    this.currentPage = 0; // 0-indexed for PageFlip
+    this.totalPages = 0;
+    this.pageFlip = null;
+    this.zoomScale = 1.0;
+    this.currentTheme = localStorage.getItem('mbbs_reader_theme') || 'default';
+    this.activeDrawer = null;
+    this.isSinglePage = false;
+
+    this.initDOMElements();
+    this.attachEventListeners();
+    this.applyTheme(this.currentTheme);
+  }
+
+  initDOMElements() {
+    this.modal = document.getElementById('reader-modal');
+    this.bookContainer = document.getElementById('book-flip-container');
+    this.bookTitleEl = document.getElementById('reader-book-title');
+    this.bookChapterEl = document.getElementById('reader-book-chapter');
+    this.pageIndicatorEl = document.getElementById('reader-page-indicator');
+    this.pageSlider = document.getElementById('reader-page-slider');
+    this.jumpInput = document.getElementById('reader-jump-input');
+    this.jumpTotalEl = document.getElementById('reader-jump-total');
+    
+    // Depth stacks & Spine
+    this.depthStackLeft = document.getElementById('book-depth-left');
+    this.depthStackRight = document.getElementById('book-depth-right');
+    this.spineCrease = document.getElementById('book-spine-crease');
+
+    // Drawers
+    this.chaptersDrawer = document.getElementById('drawer-chapters');
+    this.thumbnailsDrawer = document.getElementById('drawer-thumbnails');
+    this.bookmarksDrawer = document.getElementById('drawer-bookmarks');
+    this.chaptersListEl = document.getElementById('drawer-chapters-list');
+    this.thumbnailsGridEl = document.getElementById('drawer-thumbnails-grid');
+    this.bookmarksListEl = document.getElementById('drawer-bookmarks-list');
+
+    // HD Zoom
+    this.zoomModal = document.getElementById('zoom-modal');
+    this.zoomImage = document.getElementById('zoom-image');
+    this.zoomTitle = document.getElementById('zoom-title');
+  }
+
+  attachEventListeners() {
+    // Back button
+    document.getElementById('btn-reader-back')?.addEventListener('click', () => this.closeReader());
+
+    // Navigation arrows
+    document.getElementById('btn-flip-prev')?.addEventListener('click', () => this.flipPrev());
+    document.getElementById('btn-flip-next')?.addEventListener('click', () => this.flipNext());
+
+    // Slider scrubbing
+    this.pageSlider?.addEventListener('input', (e) => {
+      const targetPage = parseInt(e.target.value, 10);
+      this.turnToPage(targetPage - 1);
+    });
+
+    // Jump form
+    document.getElementById('form-jump')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const val = parseInt(this.jumpInput.value, 10);
+      if (!isNaN(val) && val >= 1 && val <= this.totalPages) {
+        this.turnToPage(val - 1);
+      }
+    });
+
+    // Theme toggle
+    document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+      const themes = ['default', 'sepia', 'light'];
+      const nextIndex = (themes.indexOf(this.currentTheme) + 1) % themes.length;
+      this.applyTheme(themes[nextIndex]);
+    });
+
+    // Audio sound toggle
+    const btnSound = document.getElementById('btn-sound-toggle');
+    btnSound?.addEventListener('click', () => {
+      const enabled = window.soundManager.toggle();
+      this.updateSoundButtonUI(enabled);
+    });
+    this.updateSoundButtonUI(window.soundManager.enabled);
+
+    // Fullscreen toggle
+    document.getElementById('btn-fullscreen-toggle')?.addEventListener('click', () => this.toggleFullscreen());
+
+    // HD Zoom open
+    document.getElementById('btn-zoom-toggle')?.addEventListener('click', () => this.openHDZoom());
+    document.getElementById('btn-zoom-close')?.addEventListener('click', () => this.closeHDZoom());
+    document.getElementById('btn-zoom-in')?.addEventListener('click', () => this.adjustZoom(0.25));
+    document.getElementById('btn-zoom-out')?.addEventListener('click', () => this.adjustZoom(-0.25));
+    document.getElementById('btn-zoom-reset')?.addEventListener('click', () => this.resetZoom());
+
+    // Bookmark toggle
+    document.getElementById('btn-bookmark-toggle')?.addEventListener('click', () => this.toggleCurrentBookmark());
+
+    // Drawer triggers
+    document.getElementById('btn-toggle-chapters')?.addEventListener('click', () => this.toggleDrawer('chapters'));
+    document.getElementById('btn-toggle-thumbnails')?.addEventListener('click', () => this.toggleDrawer('thumbnails'));
+    document.getElementById('btn-toggle-bookmarks')?.addEventListener('click', () => this.toggleDrawer('bookmarks'));
+
+    // Drawer close buttons
+    document.querySelectorAll('.btn-drawer-close').forEach(btn => {
+      btn.addEventListener('click', () => this.closeAllDrawers());
+    });
+
+    // Keyboard shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (!this.modal.classList.contains('active')) return;
+      if (e.target.tagName === 'INPUT') return;
+
+      switch (e.key) {
+        case 'ArrowLeft':
+        case 'PageUp':
+          this.flipPrev();
+          break;
+        case 'ArrowRight':
+        case 'PageDown':
+        case ' ':
+          this.flipNext();
+          break;
+        case 'Home':
+          this.turnToPage(0);
+          break;
+        case 'End':
+          this.turnToPage(this.totalPages - 1);
+          break;
+        case 'f':
+        case 'F':
+          this.toggleFullscreen();
+          break;
+        case 'm':
+        case 'M':
+          const enabled = window.soundManager.toggle();
+          this.updateSoundButtonUI(enabled);
+          break;
+        case 'z':
+        case 'Z':
+          this.openHDZoom();
+          break;
+        case 'Escape':
+          if (this.zoomModal.classList.contains('active')) {
+            this.closeHDZoom();
+          } else if (this.activeDrawer) {
+            this.closeAllDrawers();
+          } else {
+            this.closeReader();
+          }
+          break;
+      }
+    });
+
+    // Zoom dragging
+    this.initZoomDraggable();
+  }
+
+  openBook(book, initialPage = 1) {
+    if (!book || !book.available) {
+      alert('This book is currently being prepared and will be available soon!');
+      return;
+    }
+
+    this.currentBook = book;
+    this.totalPages = book.totalPages;
+    this.currentPage = Math.max(0, Math.min(initialPage - 1, this.totalPages - 1));
+
+    // Update UI headers
+    this.bookTitleEl.textContent = book.title;
+    this.bookChapterEl.textContent = book.subtitle || book.edition;
+    this.jumpTotalEl.textContent = `/ ${this.totalPages}`;
+    this.pageSlider.max = this.totalPages;
+    this.pageSlider.value = this.currentPage + 1;
+    this.jumpInput.max = this.totalPages;
+    this.jumpInput.value = this.currentPage + 1;
+
+    // Show modal
+    this.modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    // Populate drawers
+    this.renderChaptersDrawer();
+    this.renderBookmarksDrawer();
+
+    // Initialize 3D Flipbook
+    this.initFlipbook();
+
+    // Update URL hash for direct shareable linking
+    window.location.hash = `book=${book.id}&page=${this.currentPage + 1}`;
+  }
+
+  closeReader() {
+    this.modal.classList.remove('active');
+    document.body.style.overflow = '';
+    this.closeAllDrawers();
+    this.closeHDZoom();
+
+    // Save reading progress
+    if (this.currentBook) {
+      this.saveLastReadPage(this.currentBook.id, this.currentPage + 1);
+      window.libraryApp?.renderRecentBooks();
+    }
+
+    // Reset hash without reloading
+    history.pushState('', document.title, window.location.pathname + window.location.search);
+  }
+
+  initFlipbook() {
+    // Clear existing flipbook instance if any
+    if (this.pageFlip) {
+      try {
+        this.pageFlip.destroy();
+      } catch (e) {
+        console.warn('Destroy flipbook err:', e);
+      }
+      this.pageFlip = null;
+    }
+
+    this.bookContainer.innerHTML = '';
+
+    // Calculate responsive page dimensions
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    
+    // Page aspect ratio 1 : 1.32 (BDC textbook standard)
+    let pageHeight = Math.min(viewportHeight - 140, 850);
+    let pageWidth = Math.round(pageHeight / 1.32);
+
+    if (viewportWidth < 800) {
+      // Mobile / portrait single page
+      pageWidth = Math.min(viewportWidth - 30, 480);
+      pageHeight = Math.round(pageWidth * 1.32);
+      this.isSinglePage = true;
+    } else {
+      this.isSinglePage = false;
+    }
+
+    // Prepare HTML page elements for StPageFlip
+    const htmlPages = [];
+    for (let i = 1; i <= this.totalPages; i++) {
+      const pageDiv = document.createElement('div');
+      pageDiv.className = 'book-page-html';
+      // First and last pages are hard covers for authentic feel
+      if (i === 1 || i === this.totalPages) {
+        pageDiv.dataset.density = 'hard';
+      } else {
+        pageDiv.dataset.density = 'soft';
+      }
+
+      const img = document.createElement('img');
+      img.alt = `${this.currentBook.title} - Page ${i}`;
+      const imgSrc = `${this.currentBook.basePath}${i}.webp`;
+      img.src = imgSrc;
+      // First 6 pages near current are eager, rest are native lazy
+      if (Math.abs(i - 1 - this.currentPage) <= 4) {
+        img.loading = 'eager';
+      } else {
+        img.loading = 'lazy';
+      }
+      
+      pageDiv.appendChild(img);
+      htmlPages.push(pageDiv);
+      this.bookContainer.appendChild(pageDiv);
+    }
+
+    // Create PageFlip instance
+    this.pageFlip = new St.PageFlip(this.bookContainer, {
+      width: pageWidth,
+      height: pageHeight,
+      size: 'fixed',
+      minWidth: 320,
+      maxWidth: 1000,
+      minHeight: 420,
+      maxHeight: 1200,
+      drawShadow: true,
+      maxShadowOpacity: 0.65,
+      showCover: true,
+      usePortrait: true,
+      startPage: this.currentPage,
+      flippingTime: 700,
+      swipeDistance: 35,
+      mobileScrollSupport: false
+    });
+
+    // Load elements into PageFlip
+    this.pageFlip.loadFromHTML(this.bookContainer.querySelectorAll('.book-page-html'));
+
+    // Event listener: On page flip
+    this.pageFlip.on('flip', (e) => {
+      this.onPageFlipped(e.data);
+    });
+
+    // Event listener: On change state (for sound)
+    this.pageFlip.on('changeState', (e) => {
+      if (e.data === 'flipping') {
+        window.soundManager.playPageFlip();
+      }
+    });
+
+    // Double-click to magnify diagram
+    this.bookContainer.addEventListener('dblclick', () => {
+      this.openHDZoom();
+    });
+
+    this.updatePageInfoUI(this.currentPage);
+    this.updateDepthStacks(this.currentPage);
+    this.preloadAdjacentPages(this.currentPage);
+  }
+
+  onPageFlipped(pageIndex) {
+    const prevPage = this.currentPage;
+    this.currentPage = pageIndex;
+    
+    // Play realistic paper flip sound
+    window.soundManager.playPageFlip(pageIndex >= prevPage ? 'forward' : 'backward');
+
+    this.updatePageInfoUI(pageIndex);
+    this.updateDepthStacks(pageIndex);
+    this.preloadAdjacentPages(pageIndex);
+
+    // Save progress
+    if (this.currentBook) {
+      this.saveLastReadPage(this.currentBook.id, pageIndex + 1);
+    }
+
+    // Update active chapter & bookmark indicator
+    this.highlightCurrentChapter();
+    this.updateBookmarkButtonUI();
+  }
+
+  updatePageInfoUI(pageIndex) {
+    const displayPage = pageIndex + 1;
+    this.pageSlider.value = displayPage;
+    this.jumpInput.value = displayPage;
+
+    // Check if showing 2 pages in spread
+    if (this.pageFlip && this.pageFlip.getOrientation() === 'landscape' && displayPage > 1 && displayPage < this.totalPages) {
+      const left = pageIndex % 2 === 0 ? displayPage : displayPage - 1;
+      const right = left + 1;
+      this.pageIndicatorEl.textContent = `Pages ${left} - ${right} of ${this.totalPages}`;
+    } else {
+      this.pageIndicatorEl.textContent = `Page ${displayPage} of ${this.totalPages}`;
+    }
+
+    // Dynamic current chapter title
+    const currentChapter = this.getCurrentChapter(displayPage);
+    if (currentChapter) {
+      this.bookChapterEl.textContent = currentChapter.title;
+    }
+  }
+
+  preloadAdjacentPages(centerIndex) {
+    if (!this.bookContainer) return;
+    const allImages = this.bookContainer.querySelectorAll('.book-page-html img');
+    // Preload centerIndex +/- 8 pages for instant zero-lag turning
+    const start = Math.max(0, centerIndex - 8);
+    const end = Math.min(this.totalPages - 1, centerIndex + 8);
+
+    for (let i = start; i <= end; i++) {
+      const img = allImages[i];
+      if (img && !img.src && img.dataset.src) {
+        img.src = img.dataset.src;
+      }
+    }
+  }
+
+  updateDepthStacks(pageIndex) {
+    if (!this.depthStackLeft || !this.depthStackRight) return;
+
+    if (this.pageFlip && this.pageFlip.getOrientation() === 'portrait') {
+      this.spineCrease.style.opacity = '0';
+      this.depthStackLeft.style.display = 'none';
+      this.depthStackRight.style.display = 'none';
+      return;
+    }
+
+    this.depthStackLeft.style.display = 'block';
+    this.depthStackRight.style.display = 'block';
+
+    const progress = pageIndex / Math.max(1, this.totalPages - 1);
+    
+    // Calculate stack thickness (1px to 16px)
+    const leftWidth = Math.max(1, Math.round(progress * 15));
+    const rightWidth = Math.max(1, Math.round((1 - progress) * 15));
+
+    this.depthStackLeft.style.width = `${leftWidth}px`;
+    this.depthStackRight.style.width = `${rightWidth}px`;
+
+    // Hide spine crease on cover page
+    if (pageIndex === 0 || pageIndex === this.totalPages - 1) {
+      this.spineCrease.style.opacity = '0';
+    } else {
+      this.spineCrease.style.opacity = '1';
+    }
+  }
+
+  flipPrev() {
+    if (this.pageFlip) {
+      this.pageFlip.flipPrev();
+    }
+  }
+
+  flipNext() {
+    if (this.pageFlip) {
+      this.pageFlip.flipNext();
+    }
+  }
+
+  turnToPage(pageIndex) {
+    if (this.pageFlip) {
+      const target = Math.max(0, Math.min(pageIndex, this.totalPages - 1));
+      this.pageFlip.turnToPage(target);
+      this.preloadAdjacentPages(target);
+    }
+  }
+
+  getCurrentChapter(page) {
+    if (!this.currentBook || !this.currentBook.chapters) return null;
+    const chapters = this.currentBook.chapters;
+    for (let i = chapters.length - 1; i >= 0; i--) {
+      if (page >= chapters[i].startPage) {
+        return chapters[i];
+      }
+    }
+    return chapters[0] || null;
+  }
+
+  // =========================================================================
+  // Drawers (Chapters, Thumbnails, Bookmarks)
+  // =========================================================================
+
+  toggleDrawer(drawerName) {
+    if (this.activeDrawer === drawerName) {
+      this.closeAllDrawers();
+      return;
+    }
+    this.closeAllDrawers();
+    this.activeDrawer = drawerName;
+
+    if (drawerName === 'chapters') {
+      this.chaptersDrawer.classList.add('open');
+      document.getElementById('btn-toggle-chapters')?.classList.add('active');
+      this.highlightCurrentChapter();
+    } else if (drawerName === 'thumbnails') {
+      this.thumbnailsDrawer.classList.add('open');
+      document.getElementById('btn-toggle-thumbnails')?.classList.add('active');
+      this.renderThumbnailsGrid();
+    } else if (drawerName === 'bookmarks') {
+      this.bookmarksDrawer.classList.add('open');
+      document.getElementById('btn-toggle-bookmarks')?.classList.add('active');
+      this.renderBookmarksDrawer();
+    }
+  }
+
+  closeAllDrawers() {
+    this.activeDrawer = null;
+    this.chaptersDrawer?.classList.remove('open');
+    this.thumbnailsDrawer?.classList.remove('open');
+    this.bookmarksDrawer?.classList.remove('open');
+
+    document.getElementById('btn-toggle-chapters')?.classList.remove('active');
+    document.getElementById('btn-toggle-thumbnails')?.classList.remove('active');
+    document.getElementById('btn-toggle-bookmarks')?.classList.remove('active');
+  }
+
+  renderChaptersDrawer() {
+    if (!this.chaptersListEl) return;
+    this.chaptersListEl.innerHTML = '';
+
+    const chapters = this.currentBook?.chapters || [];
+    if (chapters.length === 0) {
+      this.chaptersListEl.innerHTML = '<p class="text-muted" style="padding:1rem;">No chapter markers defined for this book.</p>';
+      return;
+    }
+
+    chapters.forEach(ch => {
+      const item = document.createElement('div');
+      item.className = 'chapter-item';
+      item.dataset.page = ch.startPage;
+      item.innerHTML = `
+        <span class="chapter-title">${ch.title}</span>
+        <span class="chapter-page-badge">p. ${ch.startPage}</span>
+      `;
+      item.addEventListener('click', () => {
+        this.turnToPage(ch.startPage - 1);
+        this.closeAllDrawers();
+      });
+      this.chaptersListEl.appendChild(item);
+    });
+
+    this.highlightCurrentChapter();
+  }
+
+  highlightCurrentChapter() {
+    const cur = this.getCurrentChapter(this.currentPage + 1);
+    if (!cur || !this.chaptersListEl) return;
+
+    this.chaptersListEl.querySelectorAll('.chapter-item').forEach(el => {
+      if (parseInt(el.dataset.page, 10) === cur.startPage) {
+        el.classList.add('active');
+      } else {
+        el.classList.remove('active');
+      }
+    });
+  }
+
+  renderThumbnailsGrid() {
+    if (!this.thumbnailsGridEl || this.thumbnailsGridEl.children.length > 0) return;
+    this.thumbnailsGridEl.innerHTML = '';
+
+    for (let i = 1; i <= this.totalPages; i++) {
+      const item = document.createElement('div');
+      item.className = 'thumb-item';
+      if (i === this.currentPage + 1) item.classList.add('active');
+
+      const img = document.createElement('img');
+      img.loading = 'lazy';
+      img.src = `${this.currentBook.basePath}${i}.webp`;
+      img.alt = `Page ${i}`;
+
+      const num = document.createElement('div');
+      num.className = 'thumb-num';
+      num.textContent = `Page ${i}`;
+
+      item.appendChild(img);
+      item.appendChild(num);
+
+      item.addEventListener('click', () => {
+        this.turnToPage(i - 1);
+        this.closeAllDrawers();
+      });
+
+      this.thumbnailsGridEl.appendChild(item);
+    }
+  }
+
+  // =========================================================================
+  // Bookmarks System
+  // =========================================================================
+
+  getBookmarksKey() {
+    return `mbbs_bookmarks_${this.currentBook?.id}`;
+  }
+
+  getBookmarks() {
+    try {
+      return JSON.parse(localStorage.getItem(this.getBookmarksKey())) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  saveBookmarks(list) {
+    localStorage.setItem(this.getBookmarksKey(), JSON.stringify(list));
+  }
+
+  toggleCurrentBookmark() {
+    const page = this.currentPage + 1;
+    let list = this.getBookmarks();
+    const existingIndex = list.findIndex(b => b.page === page);
+
+    if (existingIndex >= 0) {
+      list.splice(existingIndex, 1);
+    } else {
+      list.push({
+        page: page,
+        title: this.getCurrentChapter(page)?.title || `Page ${page}`,
+        createdAt: new Date().toLocaleDateString()
+      });
+      list.sort((a, b) => a.page - b.page);
+    }
+
+    this.saveBookmarks(list);
+    this.updateBookmarkButtonUI();
+    this.renderBookmarksDrawer();
+  }
+
+  updateBookmarkButtonUI() {
+    const btn = document.getElementById('btn-bookmark-toggle');
+    if (!btn) return;
+    const page = this.currentPage + 1;
+    const list = this.getBookmarks();
+    const isBookmarked = list.some(b => b.page === page);
+
+    if (isBookmarked) {
+      btn.classList.add('active');
+      btn.style.color = '#fbbf24';
+      btn.title = 'Remove Bookmark';
+    } else {
+      btn.classList.remove('active');
+      btn.style.color = '';
+      btn.title = 'Bookmark this Page';
+    }
+  }
+
+  renderBookmarksDrawer() {
+    if (!this.bookmarksListEl) return;
+    this.bookmarksListEl.innerHTML = '';
+
+    const list = this.getBookmarks();
+    if (list.length === 0) {
+      this.bookmarksListEl.innerHTML = '<p class="text-muted" style="padding:1rem; font-size:0.85rem;">No bookmarks saved yet. Click the ribbon icon on the top bar to bookmark this page.</p>';
+      return;
+    }
+
+    list.forEach(bm => {
+      const item = document.createElement('div');
+      item.className = 'chapter-item';
+      item.innerHTML = `
+        <div>
+          <div class="chapter-title"><i class="fa-solid fa-bookmark" style="color:#fbbf24; margin-right:6px;"></i> ${bm.title}</div>
+          <div style="font-size:0.7rem; color:#94a3b8; margin-top:2px;">Saved ${bm.createdAt}</div>
+        </div>
+        <span class="chapter-page-badge">p. ${bm.page}</span>
+      `;
+      item.addEventListener('click', () => {
+        this.turnToPage(bm.page - 1);
+        this.closeAllDrawers();
+      });
+      this.bookmarksListEl.appendChild(item);
+    });
+  }
+
+  // =========================================================================
+  // High-Definition Diagram Zoom Modal (HD Magnifier)
+  // =========================================================================
+
+  openHDZoom() {
+    if (!this.currentBook) return;
+    const page = this.currentPage + 1;
+    this.zoomImage.src = `${this.currentBook.basePath}${page}.webp`;
+    this.zoomTitle.innerHTML = `<i class="fa-solid fa-magnifying-glass-plus"></i> HD Magnifier: ${this.currentBook.title} (Page ${page})`;
+    this.zoomScale = 1.0;
+    this.updateZoomTransform();
+    this.zoomModal.classList.add('active');
+  }
+
+  closeHDZoom() {
+    this.zoomModal.classList.remove('active');
+  }
+
+  adjustZoom(delta) {
+    this.zoomScale = Math.max(0.75, Math.min(this.zoomScale + delta, 3.5));
+    this.updateZoomTransform();
+  }
+
+  resetZoom() {
+    this.zoomScale = 1.0;
+    this.updateZoomTransform();
+  }
+
+  updateZoomTransform() {
+    this.zoomImage.style.transform = `scale(${this.zoomScale})`;
+  }
+
+  initZoomDraggable() {
+    const viewport = document.getElementById('zoom-viewport');
+    if (!viewport) return;
+
+    let isDown = false;
+    let startX, startY, scrollLeft, scrollTop;
+
+    viewport.addEventListener('mousedown', (e) => {
+      isDown = true;
+      startX = e.pageX - viewport.offsetLeft;
+      startY = e.pageY - viewport.offsetTop;
+      scrollLeft = viewport.scrollLeft;
+      scrollTop = viewport.scrollTop;
+    });
+
+    viewport.addEventListener('mouseleave', () => isDown = false);
+    viewport.addEventListener('mouseup', () => isDown = false);
+
+    viewport.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      e.preventDefault();
+      const x = e.pageX - viewport.offsetLeft;
+      const y = e.pageY - viewport.offsetTop;
+      const walkX = (x - startX) * 1.5;
+      const walkY = (y - startY) * 1.5;
+      viewport.scrollLeft = scrollLeft - walkX;
+      viewport.scrollTop = scrollTop - walkY;
+    });
+
+    // Mouse wheel zoom
+    viewport.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.2 : -0.2;
+      this.adjustZoom(delta);
+    }, { passive: false });
+  }
+
+  // =========================================================================
+  // Themes & UI Utilities
+  // =========================================================================
+
+  applyTheme(theme) {
+    this.currentTheme = theme;
+    localStorage.setItem('mbbs_reader_theme', theme);
+    this.modal.classList.remove('theme-default', 'theme-sepia', 'theme-light');
+    this.modal.classList.add(`theme-${theme}`);
+
+    const btnTheme = document.getElementById('btn-theme-toggle');
+    if (btnTheme) {
+      if (theme === 'sepia') {
+        btnTheme.innerHTML = '<i class="fa-solid fa-scroll"></i>';
+        btnTheme.title = 'Reading Theme: Warm Parchment (Click for Light)';
+      } else if (theme === 'light') {
+        btnTheme.innerHTML = '<i class="fa-solid fa-sun"></i>';
+        btnTheme.title = 'Reading Theme: Crisp Paper (Click for Midnight)';
+      } else {
+        btnTheme.innerHTML = '<i class="fa-solid fa-moon"></i>';
+        btnTheme.title = 'Reading Theme: Midnight Slate (Click for Sepia)';
+      }
+    }
+  }
+
+  updateSoundButtonUI(enabled) {
+    const btn = document.getElementById('btn-sound-toggle');
+    if (!btn) return;
+    if (enabled) {
+      btn.innerHTML = '<i class="fa-solid fa-volume-high"></i>';
+      btn.title = 'Page Flip Sound: ON (Click to Mute)';
+      btn.style.color = '#38bdf8';
+    } else {
+      btn.innerHTML = '<i class="fa-solid fa-volume-xmark"></i>';
+      btn.title = 'Page Flip Sound: OFF (Click to Unmute)';
+      btn.style.color = '#94a3b8';
+    }
+  }
+
+  toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => console.warn(err));
+    } else {
+      document.exitFullscreen().catch(err => console.warn(err));
+    }
+  }
+
+  saveLastReadPage(bookId, page) {
+    localStorage.setItem(`mbbs_last_page_${bookId}`, page);
+    localStorage.setItem(`mbbs_last_read_time_${bookId}`, Date.now());
+  }
+
+  static getLastReadPage(bookId) {
+    return parseInt(localStorage.getItem(`mbbs_last_page_${bookId}`), 10) || 1;
+  }
+}
+
+window.mbbsReader = new MBBSReader();
