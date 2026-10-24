@@ -1,7 +1,7 @@
 // MBBS Book Library - Master Catalog
 window.MBBS_CATALOG = {
   appName: "MBBS Book Library",
-  tagline: "Interactive 3D Medical Textbook Reader for MBBS Students",
+  tagline: "Minimal Medical Textbook Library for MBBS Students",
   years: [
     {
       id: "1st-year",
