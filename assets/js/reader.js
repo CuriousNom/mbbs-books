@@ -17,6 +17,7 @@ class MBBSReader {
     this.stagePanY = 0;
     this.isPanning = false;
     this.isPinching = false;
+    this.isFlipping = false;
     this.panStartX = 0;
     this.panStartY = 0;
     this.initialPinchDistance = 0;
@@ -399,6 +400,7 @@ class MBBSReader {
   }
 
   flipNext() {
+    if (this.isFlipping || !this.currentBook) return;
     if (this.currentPage >= this.totalPages - 1) return;
 
     let advance = 1;
@@ -406,10 +408,11 @@ class MBBSReader {
       advance = 2;
     }
     const target = Math.min(this.currentPage + advance, this.totalPages - 1);
-    this.turnToPage(target);
+    this.animatePageFlip('next', target);
   }
 
   flipPrev() {
+    if (this.isFlipping || !this.currentBook) return;
     if (this.currentPage <= 0) return;
 
     let back = 1;
@@ -417,7 +420,137 @@ class MBBSReader {
       back = 2;
     }
     const target = Math.max(0, this.currentPage - back);
-    this.turnToPage(target);
+    this.animatePageFlip('prev', target);
+  }
+
+  animatePageFlip(direction, targetPage) {
+    if (this.isFlipping || !this.spreadEl || !this.currentBook) {
+      this.turnToPage(targetPage);
+      return;
+    }
+
+    const curDisplay = this.currentPage + 1;
+    const targetDisplay = targetPage + 1;
+
+    // Play paper rustle flip sound
+    window.soundManager.playPageFlip(direction === 'next' ? 'forward' : 'backward');
+
+    if (this.isSinglePage) {
+      // Single Page 3D Flip (Mobile)
+      this.isFlipping = true;
+      const frontSrc = `${this.currentBook.basePath}${curDisplay}.webp`;
+      const backSrc = `${this.currentBook.basePath}${targetDisplay}.webp`;
+
+      const leaf = document.createElement('div');
+      leaf.className = `flipping-leaf flip-${direction}`;
+      leaf.style.width = `${this.pageWidth}px`;
+      leaf.style.left = '0px';
+
+      leaf.innerHTML = `
+        <div class="leaf-face leaf-front">
+          <img src="${frontSrc}" alt="Page ${curDisplay}" />
+          <div class="leaf-shadow"></div>
+        </div>
+        <div class="leaf-face leaf-back">
+          <img src="${backSrc}" alt="Page ${targetDisplay}" />
+          <div class="leaf-shadow"></div>
+        </div>
+      `;
+
+      this.pageImageRight.src = backSrc;
+      this.spreadEl.appendChild(leaf);
+
+      setTimeout(() => {
+        leaf.remove();
+        this.currentPage = targetPage;
+        this.renderCurrentSpread(false);
+        this.isFlipping = false;
+      }, 500);
+
+    } else {
+      // Dual Page Spread 3D Flip (Desktop)
+      this.isFlipping = true;
+      const leaf = document.createElement('div');
+      leaf.className = `flipping-leaf flip-${direction}`;
+      leaf.style.width = `${this.pageWidth}px`;
+
+      if (direction === 'next') {
+        // Flipping right page over to left
+        const curRight = curDisplay === 1 ? 1 : (curDisplay % 2 === 0 ? curDisplay + 1 : curDisplay);
+        const newLeft = targetDisplay % 2 === 0 ? targetDisplay : targetDisplay - 1;
+        const newRight = newLeft + 1;
+
+        const frontSrc = `${this.currentBook.basePath}${curRight}.webp`;
+        const backSrc = `${this.currentBook.basePath}${newLeft}.webp`;
+
+        leaf.style.left = `${this.pageWidth}px`;
+        leaf.innerHTML = `
+          <div class="leaf-face leaf-front">
+            <img src="${frontSrc}" alt="Page ${curRight}" />
+            <div class="leaf-shadow"></div>
+          </div>
+          <div class="leaf-face leaf-back">
+            <img src="${backSrc}" alt="Page ${newLeft}" />
+            <div class="leaf-shadow"></div>
+          </div>
+        `;
+
+        if (newRight <= this.totalPages) {
+          this.pageContainerRight.style.visibility = 'visible';
+          this.pageImageRight.src = `${this.currentBook.basePath}${newRight}.webp`;
+        } else {
+          this.pageContainerRight.style.visibility = 'hidden';
+        }
+
+        this.spreadEl.appendChild(leaf);
+
+        setTimeout(() => {
+          leaf.remove();
+          this.currentPage = targetPage;
+          this.renderCurrentSpread(false);
+          this.isFlipping = false;
+        }, 500);
+
+      } else {
+        // Flipping left page over to right
+        const curLeft = curDisplay % 2 === 0 ? curDisplay : curDisplay - 1;
+        let newLeft = 0;
+        let newRight = 1;
+
+        if (targetDisplay > 1) {
+          newLeft = targetDisplay % 2 === 0 ? targetDisplay : targetDisplay - 1;
+          newRight = newLeft + 1;
+        }
+
+        const frontSrc = `${this.currentBook.basePath}${curLeft}.webp`;
+        const backSrc = `${this.currentBook.basePath}${newRight}.webp`;
+
+        leaf.style.left = '0px';
+        leaf.innerHTML = `
+          <div class="leaf-face leaf-front">
+            <img src="${frontSrc}" alt="Page ${curLeft}" />
+            <div class="leaf-shadow"></div>
+          </div>
+          <div class="leaf-face leaf-back">
+            <img src="${backSrc}" alt="Page ${newRight}" />
+            <div class="leaf-shadow"></div>
+          </div>
+        `;
+
+        if (newLeft > 0) {
+          this.pageImageLeft.src = `${this.currentBook.basePath}${newLeft}.webp`;
+        }
+
+        this.spreadEl.appendChild(leaf);
+
+        setTimeout(() => {
+          leaf.remove();
+          this.currentPage = targetPage;
+          this.renderCurrentSpread(false);
+          this.isFlipping = false;
+        }, 500);
+      }
+    }
   }
 
   preloadAdjacentPages(centerPage) {
@@ -761,20 +894,6 @@ class MBBSReader {
         this.stageContainer?.classList.remove('panning');
         this.constrainPanBounds();
         this.applyStageTransform(true);
-      } else if (!this.isPanning && this.stageZoom <= 1.05 && e.touches.length === 0) {
-        const changedTouch = e.changedTouches?.[0];
-        if (changedTouch) {
-          const deltaX = changedTouch.clientX - touchStartX;
-          const deltaY = changedTouch.clientY - touchStartY;
-          const deltaTime = Date.now() - touchStartTime;
-          if (Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3 && deltaTime < 450) {
-            if (deltaX < 0) {
-              this.flipNext();
-            } else {
-              this.flipPrev();
-            }
-          }
-        }
       }
     };
 
