@@ -1007,6 +1007,8 @@ body {
   left: 0;
   top: 0;
   border-radius: var(--shape-m);
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
 }
 
 /* M3 Circular Turn Floating Navigation Arrows */
@@ -1382,6 +1384,8 @@ body {
   border-radius: var(--shape-m);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
   pointer-events: none;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: high-quality;
 }
 
 /* Responsive Adaptations */
