@@ -266,12 +266,63 @@ body {
 }
 
 /* ==========================================================================
+   Intro Section (Modern M3 Editorial Header)
+   ========================================================================== */
+
+.intro-section {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 2.25rem 1.5rem 0.5rem;
+}
+
+.intro-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.intro-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #60a5fa;
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  padding: 0.25rem 0.7rem;
+  border-radius: var(--shape-full);
+  width: fit-content;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.intro-tag i {
+  font-size: 0.78rem;
+}
+
+.intro-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  color: var(--md-on-surface);
+  line-height: 1.2;
+}
+
+.intro-subtitle {
+  font-size: 0.95rem;
+  color: var(--md-on-surface-variant);
+  max-width: 680px;
+  line-height: 1.55;
+}
+
+/* ==========================================================================
    Material 3 Filter Chips Bar
    ========================================================================== */
 
 .filter-bar {
   max-width: 1240px;
-  margin: 1.5rem auto 0;
+  margin: 1.25rem auto 0;
   padding: 0 1.5rem;
   display: flex;
   align-items: center;
@@ -1453,6 +1504,19 @@ body {
 
   .search-clear-btn {
     right: 0.55rem;
+  }
+
+  .intro-section {
+    padding: 1.25rem 1rem 0.25rem;
+  }
+
+  .intro-title {
+    font-size: 1.5rem;
+  }
+
+  .intro-subtitle {
+    font-size: 0.84rem;
+    line-height: 1.45;
   }
 
   .filter-bar {
