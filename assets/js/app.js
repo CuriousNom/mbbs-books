@@ -174,10 +174,10 @@ class MBBSLibraryApp {
       yearBlock.innerHTML = `
         <div class="year-header">
           <div class="year-header-title">
-            <h2><i class="fa-solid ${year.icon}" style="color:#60a5fa; margin-right:8px;"></i> ${year.title}</h2>
+            <h2>${year.title}</h2>
             <span class="year-header-badge">${year.badge}</span>
           </div>
-          <span style="font-size:0.85rem; color:#94a3b8;">${year.description}</span>
+          <span class="year-header-desc">${year.description}</span>
         </div>
       `;
 
@@ -186,11 +186,13 @@ class MBBSLibraryApp {
         const subjectBlock = document.createElement('div');
         subjectBlock.className = 'subject-block';
         subjectBlock.innerHTML = `
-          <h3 class="subject-title">
-            <i class="fa-solid ${subject.icon}" style="color:${subject.accent};"></i>
-            ${subject.title}
-            <span style="font-size:0.75rem; font-weight:normal; color:#94a3b8; margin-left:0.5rem;">${subject.tagline}</span>
-          </h3>
+          <div class="subject-header">
+            <h3 class="subject-title">
+              <i class="fa-solid ${subject.icon}" style="color:${subject.accent};"></i>
+              <span>${subject.title}</span>
+            </h3>
+            <span class="subject-tagline">${subject.tagline}</span>
+          </div>
           <div class="books-grid"></div>
         `;
 
@@ -199,20 +201,26 @@ class MBBSLibraryApp {
         // Render Books in Subject
         subject.books.forEach(book => {
           const bookCard = document.createElement('article');
-          bookCard.className = 'book-card';
+          bookCard.className = `book-card ${!book.available ? 'is-unavailable' : ''}`;
+
+          const metaParts = [];
+          if (book.edition) metaParts.push(book.edition);
+          if (book.totalPages > 0) metaParts.push(`${book.totalPages} pages`);
+          const metaString = metaParts.join(' • ');
 
           const coverHTML = book.cover ? `
             <div class="book-card-cover-wrap">
-              <div class="book-card-cover-3d" data-book-id="${book.id}">
+              <div class="book-cover-frame" data-book-id="${book.id}">
                 <img src="${book.cover}" alt="${book.title}" loading="lazy" />
+                <div class="book-cover-glare"></div>
               </div>
             </div>
           ` : `
             <div class="book-card-cover-wrap">
               <div class="book-placeholder-cover">
-                <i class="fa-solid ${subject.icon}" style="font-size:2.5rem; color:${subject.accent}; opacity:0.7;"></i>
-                <div style="font-weight:600; font-size:0.85rem;">${book.title}</div>
-                <div style="font-size:0.7rem; color:#94a3b8;">${book.author}</div>
+                <i class="fa-solid ${subject.icon}" style="font-size:2.2rem; color:${subject.accent}; opacity:0.8;"></i>
+                <div class="placeholder-title">${book.title}</div>
+                <div class="placeholder-author">${book.author}</div>
               </div>
             </div>
           `;
@@ -222,32 +230,24 @@ class MBBSLibraryApp {
           bookCard.innerHTML = `
             ${coverHTML}
             <div class="book-info">
-              <div class="book-badges">
-                <span class="badge-status ${book.available ? 'badge-ready' : 'badge-coming'}">
-                  ${book.available ? 'Ready to Read' : book.badge || 'Coming Soon'}
-                </span>
-                ${book.totalPages > 0 ? `<span class="badge-pages">${book.totalPages} Pages</span>` : ''}
-                <span class="badge-pages">${book.edition}</span>
+              <div class="book-meta-top">
+                <span class="book-edition-tag">${metaString}</span>
+                ${!book.available ? `<span class="badge-status badge-coming">${book.badge || 'Coming Soon'}</span>` : ''}
               </div>
               <h4 class="book-title" title="${book.title}">${book.title}</h4>
-              <p class="book-subtitle">${book.subtitle || book.description || ''}</p>
-              <div class="book-meta">
-                <span class="book-author"><i class="fa-solid fa-user-pen" style="margin-right:4px; opacity:0.7;"></i> ${book.author}</span>
-              </div>
+              <p class="book-author">${book.author}</p>
               <div class="book-actions">
                 <button class="btn-read-book" data-book-id="${book.id}" ${!book.available ? 'disabled' : ''}>
-                  <i class="fa-solid fa-book-open"></i> ${book.available ? (lastReadPage > 1 ? `Continue (p. ${lastReadPage})` : 'Read Book') : 'Coming Soon'}
+                  <i class="fa-solid ${book.available ? (lastReadPage > 1 ? 'fa-arrow-rotate-right' : 'fa-book-open') : 'fa-lock'}"></i>
+                  <span>${book.available ? (lastReadPage > 1 ? `Resume p. ${lastReadPage}` : 'Read') : 'Coming Soon'}</span>
                 </button>
               </div>
             </div>
           `;
 
-          // Click on cover or Read button opens reader
+          // Click on card or Read button opens reader
           if (book.available) {
-            bookCard.querySelector('.btn-read-book')?.addEventListener('click', () => {
-              window.mbbsReader.openBook(book, lastReadPage);
-            });
-            bookCard.querySelector('.book-card-cover-3d, .book-cover-container')?.addEventListener('click', () => {
+            bookCard.addEventListener('click', (e) => {
               window.mbbsReader.openBook(book, lastReadPage);
             });
           }

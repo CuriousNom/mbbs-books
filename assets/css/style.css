@@ -1,45 +1,45 @@
 /* ==========================================================================
-   MBBS Book Library - Android 17 / Material Design 3 (Material You) Stylesheet
-   Pure Modern Material Design: Zero Neomorphism, Fluid Tonal Surfaces & Pill Shapes
+   MBBS Book Library - Modern Material Design 3 / Android Style
+   Clean, Professional, Human-Crafted Aesthetic: Pure Surfaces & Natural Book Covers
    ========================================================================== */
 
 :root {
-  /* Material 3 Dark System Tokens (Android 17 Tone Palette) */
-  --md-surface: #111318;
-  --md-surface-dim: #111318;
-  --md-surface-bright: #37393e;
-  --md-surface-container-lowest: #0c0e12;
-  --md-surface-container-low: #191c20;
-  --md-surface-container: #1d2024;
-  --md-surface-container-high: #282a2f;
-  --md-surface-container-highest: #33353a;
+  /* Material 3 Dark System Tokens */
+  --md-surface: #0e1014;
+  --md-surface-dim: #0a0c0f;
+  --md-surface-bright: #2d313a;
+  --md-surface-container-lowest: #08090c;
+  --md-surface-container-low: #14171d;
+  --md-surface-container: #181c23;
+  --md-surface-container-high: #20242c;
+  --md-surface-container-highest: #292d37;
 
-  --md-primary: #a8c7fa;
-  --md-on-primary: #062e6f;
-  --md-primary-container: #0842a0;
-  --md-on-primary-container: #d3e3fd;
+  --md-primary: #3b82f6;
+  --md-on-primary: #ffffff;
+  --md-primary-container: #1e3a8a;
+  --md-on-primary-container: #dbeafe;
 
-  --md-secondary: #c2c6d6;
-  --md-on-secondary: #2c303d;
-  --md-secondary-container: #33435c;
-  --md-on-secondary-container: #d7e3f8;
+  --md-secondary: #94a3b8;
+  --md-on-secondary: #0f172a;
+  --md-secondary-container: #1e293b;
+  --md-on-secondary-container: #e2e8f0;
 
-  --md-tertiary: #7dd3fc;
-  --md-tertiary-container: #075985;
+  --md-tertiary: #38bdf8;
+  --md-tertiary-container: #0369a1;
   --md-on-tertiary-container: #e0f2fe;
 
-  --md-on-surface: #e2e2e9;
-  --md-on-surface-variant: #c4c6d0;
-  --md-outline: #8e9099;
-  --md-outline-variant: rgba(255, 255, 255, 0.08);
+  --md-on-surface: #f8fafc;
+  --md-on-surface-variant: #94a3b8;
+  --md-outline: rgba(255, 255, 255, 0.12);
+  --md-outline-variant: rgba(255, 255, 255, 0.06);
 
-  --md-success: #6dd58c;
-  --md-success-container: #0f5223;
-  --md-on-success-container: #c4eed0;
+  --md-success: #22c55e;
+  --md-success-container: #14532d;
+  --md-on-success-container: #bbf7d0;
 
-  --md-warning: #ffb951;
-  --md-warning-container: #663d00;
-  --md-on-warning-container: #ffddb3;
+  --md-warning: #f59e0b;
+  --md-warning-container: #78350f;
+  --md-on-warning-container: #fef3c7;
 
   /* Typography */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Google Sans", "Segoe UI", Roboto, sans-serif;
@@ -50,8 +50,8 @@
   --shape-s: 8px;
   --shape-m: 12px;
   --shape-l: 16px;
-  --shape-xl: 24px;
-  --shape-xxl: 28px;
+  --shape-xl: 20px;
+  --shape-xxl: 24px;
   --shape-full: 9999px;
 }
 
@@ -72,22 +72,22 @@ body {
 }
 
 /* ==========================================================================
-   M3 Header & Search Bar (Android 17 Pill SearchBar)
+   M3 Header & Search Bar
    ========================================================================== */
 
 .site-header {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(17, 19, 24, 0.92);
-  backdrop-filter: blur(20px);
+  background: rgba(14, 16, 20, 0.94);
+  backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--md-outline-variant);
 }
 
 .header-container {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 0.75rem 1.5rem;
+  padding: 0.85rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -103,20 +103,16 @@ body {
 }
 
 .brand-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: var(--shape-m);
-  background: var(--md-primary-container);
-  color: var(--md-primary);
+  width: 38px;
+  height: 38px;
+  border-radius: var(--shape-s);
+  background: #1d4ed8;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
-  transition: transform 0.2s ease;
-}
-
-.brand:hover .brand-icon {
-  transform: scale(1.05);
+  font-size: 1.05rem;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 
 .brand-text h1 {
@@ -133,10 +129,10 @@ body {
   display: block;
 }
 
-/* Android M3 Search Bar */
+/* Material 3 Pill Search Bar */
 .header-search {
   flex: 1;
-  max-width: 480px;
+  max-width: 460px;
   position: relative;
 }
 
@@ -146,18 +142,18 @@ body {
   top: 50%;
   transform: translateY(-50%);
   color: var(--md-on-surface-variant);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 
 .search-input {
   width: 100%;
-  height: 46px;
-  padding: 0 1.25rem 0 2.85rem;
+  height: 42px;
+  padding: 0 1.25rem 0 2.65rem;
   border-radius: var(--shape-full);
   border: 1px solid var(--md-outline-variant);
   background: var(--md-surface-container-high);
   color: var(--md-on-surface);
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   transition: background 0.2s ease, border-color 0.2s ease;
   outline: none;
 }
@@ -174,122 +170,59 @@ body {
 }
 
 .btn-header {
-  height: 40px;
-  padding: 0 1.1rem;
+  height: 38px;
+  padding: 0 1rem;
   border-radius: var(--shape-full);
   border: 1px solid var(--md-outline-variant);
-  background: var(--md-surface-container);
+  background: var(--md-surface-container-low);
   color: var(--md-on-surface);
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
   text-decoration: none;
-  transition: background 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .btn-header:hover {
   background: var(--md-surface-container-highest);
+  border-color: var(--md-outline);
 }
 
 /* ==========================================================================
-   Hero Section (M3 Large Rounded Surface Card)
+   Clean Library Header (Replaces AI Marketing Hero Banner)
    ========================================================================== */
 
-.hero-section {
+.library-header-section {
   max-width: 1240px;
   margin: 0 auto;
-  padding: 2rem 1.5rem 1rem;
+  padding: 2.25rem 1.5rem 0.5rem;
 }
 
-.hero-banner {
-  background: var(--md-surface-container-low);
-  border: 1px solid var(--md-outline-variant);
-  border-radius: var(--shape-xxl);
-  padding: 2.2rem 2.5rem;
-  position: relative;
+.library-header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
 }
 
-.hero-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  padding: 0.35rem 0.85rem;
-  background: var(--md-secondary-container);
-  border-radius: var(--shape-full);
-  color: var(--md-on-secondary-container);
-  font-size: 0.75rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-  letter-spacing: 0.02em;
-}
-
-.hero-title {
-  font-size: 2.15rem;
+.library-title {
+  font-size: 1.85rem;
   font-weight: 700;
-  line-height: 1.25;
-  margin-bottom: 0.65rem;
-  color: var(--md-on-surface);
   letter-spacing: -0.02em;
-}
-
-.hero-title span {
-  color: var(--md-primary);
-}
-
-.hero-desc {
-  font-size: 0.95rem;
-  color: var(--md-on-surface-variant);
-  max-width: 640px;
-  margin-bottom: 1.75rem;
-  line-height: 1.6;
-}
-
-.hero-stats {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.stat-box {
-  display: flex;
-  align-items: center;
-  gap: 0.85rem;
-  background: var(--md-surface-container);
-  border: 1px solid var(--md-outline-variant);
-  padding: 0.75rem 1.25rem;
-  border-radius: var(--shape-l);
-}
-
-.stat-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--shape-m);
-  background: var(--md-primary-container);
-  color: var(--md-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-}
-
-.stat-val {
-  font-size: 1.2rem;
-  font-weight: 700;
   color: var(--md-on-surface);
-  line-height: 1;
 }
 
-.stat-lbl {
-  font-size: 0.72rem;
+.library-subtitle {
+  font-size: 0.92rem;
   color: var(--md-on-surface-variant);
-  margin-top: 0.25rem;
+  margin-top: 0.35rem;
+  max-width: 680px;
 }
 
 /* ==========================================================================
-   Filter Chips (Material 3 FilterChip Pills)
+   Material 3 Filter Chips
    ========================================================================== */
 
 .filter-bar {
@@ -298,37 +231,42 @@ body {
   padding: 0 1.5rem;
   display: flex;
   align-items: center;
-  gap: 0.65rem;
+  gap: 0.5rem;
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  scrollbar-width: none;
+}
+
+.filter-bar::-webkit-scrollbar {
+  display: none;
 }
 
 .year-pill {
-  height: 38px;
-  padding: 0 1.15rem;
-  border-radius: var(--shape-full);
+  height: 36px;
+  padding: 0 1.1rem;
+  border-radius: var(--shape-s);
   border: 1px solid var(--md-outline-variant);
   background: var(--md-surface-container-low);
   color: var(--md-on-surface-variant);
   font-size: 0.82rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.2s cubic-bezier(0.2, 0, 0, 1);
+  transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
 }
 
 .year-pill:hover {
-  background: var(--md-surface-container-highest);
+  background: var(--md-surface-container);
   color: var(--md-on-surface);
+  border-color: var(--md-outline);
 }
 
 .year-pill.active {
-  background: var(--md-secondary-container);
-  color: var(--md-on-secondary-container);
+  background: var(--md-primary-container);
+  color: var(--md-on-primary-container);
   border-color: transparent;
+  font-weight: 600;
 }
 
 /* ==========================================================================
@@ -337,7 +275,7 @@ body {
 
 .continue-shelf {
   max-width: 1240px;
-  margin: 1.5rem auto 0;
+  margin: 1.75rem auto 0;
   padding: 0 1.5rem;
 }
 
@@ -345,7 +283,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.9rem;
+  margin-bottom: 0.85rem;
 }
 
 .section-head h3 {
@@ -359,6 +297,7 @@ body {
 
 .section-head h3 i {
   color: var(--md-primary);
+  font-size: 0.95rem;
 }
 
 .recent-cards-container {
@@ -370,12 +309,12 @@ body {
 .recent-card {
   background: var(--md-surface-container-low);
   border: 1px solid var(--md-outline-variant);
-  border-radius: var(--shape-xl);
-  padding: 1.1rem;
+  border-radius: var(--shape-l);
+  padding: 0.9rem 1rem;
   display: flex;
-  gap: 1rem;
+  gap: 0.9rem;
   align-items: center;
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .recent-card:hover {
@@ -384,11 +323,12 @@ body {
 }
 
 .recent-thumb {
-  width: 52px;
-  height: 72px;
-  border-radius: var(--shape-m);
+  width: 48px;
+  height: 68px;
+  border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
 .recent-details {
@@ -397,13 +337,13 @@ body {
 }
 
 .recent-title {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--md-on-surface);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .recent-progress-info {
@@ -411,16 +351,16 @@ body {
   justify-content: space-between;
   font-size: 0.72rem;
   color: var(--md-on-surface-variant);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
 }
 
 .progress-bar-bg {
   width: 100%;
-  height: 6px;
+  height: 4px;
   background: var(--md-surface-container-highest);
   border-radius: var(--shape-full);
   overflow: hidden;
-  margin-bottom: 0.6rem;
+  margin-bottom: 0.5rem;
 }
 
 .progress-bar-fill {
@@ -432,309 +372,323 @@ body {
 .btn-resume {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.85rem;
-  font-size: 0.75rem;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  font-size: 0.74rem;
   font-weight: 600;
-  background: var(--md-primary);
-  color: var(--md-on-primary);
+  background: #2563eb;
+  color: #ffffff;
   border-radius: var(--shape-full);
   text-decoration: none;
   cursor: pointer;
   border: none;
-  transition: opacity 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .btn-resume:hover {
-  opacity: 0.9;
+  background: #1d4ed8;
 }
 
 /* ==========================================================================
-   Catalog & Book Cards (Material 3 Card)
+   Catalog & Book Cards (Clean, Upright, Natural Book Presentation)
    ========================================================================== */
 
 .catalog-container {
   max-width: 1240px;
-  margin: 2rem auto;
+  margin: 1.5rem auto 3rem;
   padding: 0 1.5rem 4rem;
 }
 
 .year-block {
-  margin-bottom: 3.25rem;
+  margin-bottom: 2.75rem;
 }
 
 .year-header {
   display: flex;
-  align-items: center;
+  align-items: baseline;
   justify-content: space-between;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.65rem;
   border-bottom: 1px solid var(--md-outline-variant);
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
 }
 
 .year-header-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.65rem;
+  flex-shrink: 0;
 }
 
 .year-header-title h2 {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  color: var(--md-on-surface);
 }
 
 .year-header-badge {
-  font-size: 0.72rem;
-  padding: 0.25rem 0.65rem;
+  font-size: 0.7rem;
+  padding: 0.2rem 0.55rem;
   border-radius: var(--shape-full);
   font-weight: 600;
   background: var(--md-secondary-container);
   color: var(--md-on-secondary-container);
 }
 
+.year-header-desc {
+  font-size: 0.82rem;
+  color: var(--md-on-surface-variant);
+}
+
 .subject-block {
-  margin-bottom: 2.5rem;
+  margin-bottom: 2.25rem;
+}
+
+.subject-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 0.75rem;
 }
 
 .subject-title {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 1.15rem;
+  margin-bottom: 0;
   display: flex;
   align-items: center;
-  gap: 0.55rem;
+  gap: 0.5rem;
   color: var(--md-on-surface);
 }
 
 .subject-title i {
   color: var(--md-primary);
+  font-size: 0.95rem;
 }
 
+.subject-tagline {
+  font-size: 0.75rem;
+  color: var(--md-on-surface-variant);
+}
+
+/* Grid of Books */
 .books-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 1.25rem;
 }
 
-/* Android 17 M3 Elevated Card */
+/* Modern Clean Book Card */
 .book-card {
   background: var(--md-surface-container-low);
   border: 1px solid var(--md-outline-variant);
-  border-radius: var(--shape-xl);
-  padding: 1.25rem;
+  border-radius: var(--shape-l);
+  padding: 0.85rem;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), background 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.2, 0, 0, 1), box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .book-card:hover {
   background: var(--md-surface-container);
-  border-color: var(--md-primary);
-  transform: translateY(-3px);
+  border-color: rgba(96, 165, 250, 0.4);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
 }
 
+.book-card.is-unavailable {
+  cursor: default;
+  opacity: 0.82;
+}
+
+.book-card.is-unavailable:hover {
+  transform: none;
+  box-shadow: none;
+  border-color: var(--md-outline-variant);
+  background: var(--md-surface-container-low);
+}
+
+/* Natural Book Cover Presentation (Upright, Clean Depth, No Gimmicks) */
 .book-card-cover-wrap {
   width: 100%;
-  height: 240px;
-  perspective: 1000px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 1.15rem;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
-  border-radius: var(--shape-l);
+  padding: 0.25rem 0.25rem 0.75rem;
 }
 
-/* Realistic 3D Tilt Book Cover - Full cover, no black borders or cutoff */
-.book-card-cover-3d,
-.book-cover-container {
-  width: 160px;
-  height: 210px;
+.book-cover-frame {
+  width: 100%;
+  max-width: 180px;
+  aspect-ratio: 1 / 1.42;
   position: relative;
-  border-radius: 3px 8px 8px 3px;
+  border-radius: 4px 6px 6px 4px;
+  overflow: hidden;
+  background: var(--md-surface-container);
   box-shadow: 
-    -6px 8px 20px rgba(0, 0, 0, 0.55),
-    -1px 0 2px rgba(0, 0, 0, 0.4),
-    inset -2px 0 5px rgba(0, 0, 0, 0.15);
-  transform: rotateY(-16deg) rotateX(6deg);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
-  transform-style: preserve-3d;
-  cursor: pointer;
+    0 4px 14px rgba(0, 0, 0, 0.45),
+    0 1px 3px rgba(0, 0, 0, 0.3);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-.book-card:hover .book-card-cover-3d,
-.book-card:hover .book-cover-container {
-  transform: rotateY(-4deg) rotateX(2deg) scale(1.05);
+.book-card:hover .book-cover-frame {
+  transform: scale(1.02);
   box-shadow: 
-    -12px 18px 32px rgba(0, 0, 0, 0.65),
-    0 0 25px rgba(168, 199, 250, 0.25);
+    0 8px 22px rgba(0, 0, 0, 0.55),
+    0 2px 6px rgba(0, 0, 0, 0.35);
 }
 
-.book-card-cover-3d img,
-.book-cover-container img {
+.book-cover-frame img {
   width: 100%;
   height: 100%;
-  object-fit: fill;
-  border-radius: 3px 8px 8px 3px;
+  object-fit: cover;
   display: block;
 }
 
-/* Spine lighting & crease on 3D book cover */
-.book-card-cover-3d::before,
-.book-cover-container::before {
+/* Subtle book spine crease on left edge */
+.book-cover-frame::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
-  width: 16px;
+  width: 12px;
   height: 100%;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.38) 0%, rgba(255, 255, 255, 0.14) 35%, rgba(0, 0, 0, 0.22) 100%);
-  border-radius: 3px 0 0 3px;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.32) 0%, rgba(255, 255, 255, 0.09) 35%, rgba(0, 0, 0, 0.15) 100%);
   pointer-events: none;
   z-index: 2;
 }
 
-/* Realistic 3D book pages thickness edge */
-.book-card-cover-3d::after,
-.book-cover-container::after {
-  content: '';
+/* Fine border inside book frame */
+.book-cover-glare {
   position: absolute;
-  top: 3px;
-  right: -9px;
-  width: 9px;
-  height: calc(100% - 6px);
-  background: repeating-linear-gradient(to right, #ccc, #ccc 1px, #eee 1px, #eee 2px);
-  border-radius: 0 3px 3px 0;
-  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.45);
-  transform: rotateY(90deg) translateZ(4.5px);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 4px 6px 6px 4px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 3;
 }
 
+/* Placeholder Cover for Upcoming Books */
 .book-placeholder-cover {
-  width: 155px;
-  height: 215px;
+  width: 100%;
+  max-width: 180px;
+  aspect-ratio: 1 / 1.42;
   background: var(--md-surface-container);
   border: 1px dashed var(--md-outline);
-  border-radius: var(--shape-m);
+  border-radius: 4px 6px 6px 4px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  color: var(--md-on-surface-variant);
-  font-size: 0.8rem;
-  gap: 0.45rem;
   padding: 1rem;
   text-align: center;
+  gap: 0.5rem;
 }
 
+.placeholder-title {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--md-on-surface);
+  line-height: 1.3;
+}
+
+.placeholder-author {
+  font-size: 0.7rem;
+  color: var(--md-on-surface-variant);
+}
+
+/* Book Details Below Cover */
 .book-info {
   flex: 1;
   display: flex;
   flex-direction: column;
+  padding-top: 0.25rem;
 }
 
-.book-badges {
+.book-meta-top {
   display: flex;
-  gap: 0.45rem;
-  margin-bottom: 0.6rem;
-}
-
-.badge-status {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--shape-s);
-  letter-spacing: 0.01em;
-}
-
-.badge-ready {
-  background: var(--md-success-container);
-  color: var(--md-on-success-container);
-}
-
-.badge-coming {
-  background: var(--md-warning-container);
-  color: var(--md-on-warning-container);
-}
-
-.badge-pages {
-  background: var(--md-surface-container-highest);
-  color: var(--md-on-surface-variant);
-  font-size: 0.7rem;
-  font-weight: 500;
-  padding: 0.2rem 0.55rem;
-  border-radius: var(--shape-s);
-}
-
-.book-title {
-  font-size: 1.02rem;
-  font-weight: 700;
-  line-height: 1.35;
-  color: var(--md-on-surface);
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   margin-bottom: 0.35rem;
 }
 
-.book-subtitle {
-  font-size: 0.8rem;
+.book-edition-tag {
+  font-size: 0.7rem;
   color: var(--md-on-surface-variant);
-  line-height: 1.45;
-  margin-bottom: 0.85rem;
+  font-weight: 500;
+}
+
+.badge-status {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.45rem;
+  border-radius: var(--shape-xs);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.badge-coming {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
+.book-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--md-on-surface);
+  line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-}
-
-.book-meta {
-  font-size: 0.75rem;
-  color: var(--md-on-surface-variant);
-  margin-top: auto;
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  min-height: 2.38rem;
 }
 
 .book-author {
-  font-weight: 500;
-  color: var(--md-on-surface);
+  font-size: 0.76rem;
+  color: var(--md-on-surface-variant);
+  margin-top: 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .book-actions {
-  display: flex;
-  gap: 0.5rem;
+  margin-top: 0.75rem;
 }
 
-/* Material 3 Filled Button (Pill) */
 .btn-read-book {
-  flex: 1;
-  height: 42px;
-  padding: 0 1rem;
-  background: var(--md-primary);
-  color: var(--md-on-primary);
+  width: 100%;
+  height: 34px;
   border-radius: var(--shape-full);
-  font-size: 0.85rem;
-  font-weight: 600;
   border: none;
-  cursor: pointer;
+  background: #2563eb;
+  color: #ffffff;
+  font-size: 0.8rem;
+  font-weight: 600;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  text-decoration: none;
-  transition: opacity 0.2s ease, transform 0.15s ease;
+  gap: 0.4rem;
+  cursor: pointer;
+  transition: background 0.15s ease, opacity 0.15s ease;
 }
 
-.btn-read-book:hover {
-  opacity: 0.92;
-  transform: translateY(-1px);
+.btn-read-book:hover:not(:disabled) {
+  background: #1d4ed8;
 }
 
 .btn-read-book:disabled {
-  background: var(--md-surface-container-highest);
-  color: var(--md-outline);
-  cursor: not-allowed;
-  transform: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: #64748b;
+  cursor: default;
 }
 
 /* ==========================================================================
@@ -1390,28 +1344,136 @@ body {
 
 /* Responsive Adaptations */
 @media (max-width: 768px) {
-  .hero-banner {
-    padding: 1.5rem;
+  .site-header {
+    padding: 0.4rem 0;
   }
-  .hero-title {
-    font-size: 1.65rem;
+
+  .header-container {
+    flex-wrap: wrap;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
   }
+
+  .brand {
+    gap: 0.65rem;
+  }
+
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 0.95rem;
+  }
+
+  .brand-text h1 {
+    font-size: 1.05rem;
+  }
+
+  .brand-text span {
+    font-size: 0.68rem;
+  }
+
   .header-search {
-    display: none;
+    display: block;
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0.25rem;
   }
+
+  .search-input {
+    height: 38px;
+    font-size: 0.82rem;
+    padding: 0 1rem 0 2.25rem;
+  }
+
+  .header-search i {
+    left: 0.85rem;
+    font-size: 0.82rem;
+  }
+
+  .library-header-section {
+    padding: 1.25rem 1rem 0.25rem;
+  }
+
+  .library-title {
+    font-size: 1.45rem;
+  }
+
+  .library-subtitle {
+    font-size: 0.82rem;
+  }
+
+  .filter-bar {
+    padding: 0 1rem;
+    margin-top: 1rem;
+  }
+
+  .catalog-container {
+    padding: 0 1rem 3rem;
+    margin-top: 1rem;
+  }
+
+  .year-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    margin-bottom: 1.15rem;
+  }
+
+  .year-header-title h2 {
+    font-size: 1.2rem;
+  }
+
+  .subject-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    margin-bottom: 0.85rem;
+  }
+
+  .subject-title {
+    font-size: 0.98rem;
+  }
+
+  .books-grid {
+    grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+    gap: 0.85rem;
+  }
+
+  .book-card {
+    padding: 0.65rem;
+  }
+
+  .book-title {
+    font-size: 0.82rem;
+    min-height: 2.2rem;
+  }
+
+  .book-author {
+    font-size: 0.72rem;
+  }
+
+  .btn-read-book {
+    height: 32px;
+    font-size: 0.76rem;
+  }
+
   .reader-top-bar,
   .reader-bottom-bar {
     margin: 8px;
     padding: 0 0.85rem;
   }
+
   .reader-book-details {
     max-width: 130px;
   }
+
   .zoom-top-bar {
     margin: 8px 8px 0;
     height: 46px;
     padding: 0 0.75rem;
   }
+
   .zoom-title {
     font-size: 0.76rem;
     max-width: 140px;
@@ -1419,20 +1481,25 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .zoom-btn {
     height: 28px;
     padding: 0 0.5rem;
     font-size: 0.72rem;
   }
+
   .btn-flip-prev {
     left: 0.4rem;
   }
+
   .btn-flip-next {
     right: 0.4rem;
   }
+
   .drawer-thumbnails {
     width: 100%;
   }
+
   .thumb-grid {
     grid-template-columns: repeat(2, 1fr);
   }
