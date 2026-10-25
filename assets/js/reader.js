@@ -335,7 +335,7 @@ class MBBSReader {
       flippingTime: 650,
       useMouseEvents: false,     // <-- Disables hand drag to turn pages
       showPageCorners: false,    // <-- Disables corner peeling on hover/touch
-      disableFlipByClick: true,   // <-- Only flip when clicking navigation icons
+      disableFlipByClick: false,  // <-- Hand drag/click is disabled by useMouseEvents: false; keeping false allows flipPrev() API to work
       mobileScrollSupport: false
     });
 
@@ -643,7 +643,7 @@ class MBBSReader {
 
     // --- Touch Gestures (Pinch to Zoom & One-Finger Pan & Swipe to Turn) ---
     this.stageContainer.addEventListener('touchstart', (e) => {
-      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
+      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-flip-nav') || e.target.closest('.btn-nav-arrow')) return;
 
       if (e.touches.length >= 2) {
         // Multi-touch pinch zoom initiation with fingers
@@ -736,7 +736,7 @@ class MBBSReader {
 
     // --- Mouse & Trackpad Gestures (Drag Pan & Wheel/Trackpad Pinch) ---
     this.stageContainer.addEventListener('mousedown', (e) => {
-      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-nav-arrow')) return;
+      if (e.target.closest('.floating-zoom-pill') || e.target.closest('.btn-flip-nav') || e.target.closest('.btn-nav-arrow')) return;
       if (this.stageZoom > 1.05 && (e.button === 0 || e.button === 1)) {
         e.preventDefault();
         this.isPanning = true;
