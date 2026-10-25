@@ -24,45 +24,34 @@
 <body>
 
   <!-- =========================================================================
-       Site Header
+       Site Header (Modern Android Material 3 App Bar)
        ========================================================================= -->
   <header class="site-header">
     <div class="header-container">
       <a href="#" class="brand">
-        <div class="brand-icon">
-          <i class="fa-solid fa-staff-snake"></i>
+        <div class="brand-mark">
+          <i class="fa-solid fa-book-medical"></i>
         </div>
-        <div class="brand-text">
-          <h1>MBBS Book Library</h1>
-          <span>Interactive Medical Reader</span>
-        </div>
+        <span class="brand-title">MBBS Library</span>
       </a>
 
       <div class="header-search">
-        <i class="fa-solid fa-magnifying-glass"></i>
-        <input type="text" id="search-input" class="search-input" placeholder="Search textbooks, topics, authors (e.g. BDC, Anatomy, Thorax)..." autocomplete="off">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="Search textbooks, topics, authors..." autocomplete="off" spellcheck="false">
+        <button id="search-clear-btn" class="search-clear-btn" title="Clear search" aria-label="Clear search">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+        <kbd class="search-kbd">/</kbd>
       </div>
 
       <div class="header-actions">
-        <a href="https://github.com/CuriousNom/mbbs-books" target="_blank" class="btn-header" title="GitHub Repository">
+        <a href="https://github.com/CuriousNom/mbbs-books" target="_blank" class="btn-github" title="View on GitHub">
           <i class="fa-brands fa-github"></i>
           <span>GitHub</span>
         </a>
       </div>
     </div>
   </header>
-
-  <!-- =========================================================================
-       Library Header
-       ========================================================================= -->
-  <section class="library-header-section">
-    <div class="library-header-container">
-      <div class="library-header-text">
-        <h2 class="library-title">Medical Textbooks</h2>
-        <p class="library-subtitle">Interactive undergraduate medical textbook library with high-definition diagrams and clinical notes.</p>
-      </div>
-    </div>
-  </section>
 
   <!-- =========================================================================
        Year Filter Navigation (Material 3 Filter Chips)

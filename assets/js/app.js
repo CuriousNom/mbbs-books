@@ -20,7 +20,9 @@ class MBBSLibraryApp {
     this.recentShelfEl = document.getElementById('continue-shelf');
     this.recentContainerEl = document.getElementById('recent-cards-container');
     this.catalogContainerEl = document.getElementById('catalog-container');
+    this.searchContainerEl = document.querySelector('.header-search');
     this.searchInputEl = document.getElementById('search-input');
+    this.searchClearBtn = document.getElementById('search-clear-btn');
     this.yearPillsEl = document.getElementById('filter-pills');
   }
 
@@ -28,7 +30,46 @@ class MBBSLibraryApp {
     // Search input
     this.searchInputEl?.addEventListener('input', (e) => {
       this.searchQuery = e.target.value.toLowerCase().trim();
+      if (this.searchContainerEl) {
+        if (e.target.value.length > 0) {
+          this.searchContainerEl.classList.add('has-text');
+        } else {
+          this.searchContainerEl.classList.remove('has-text');
+        }
+      }
       this.renderCatalog();
+    });
+
+    // Clear search button
+    this.searchClearBtn?.addEventListener('click', () => {
+      if (this.searchInputEl) {
+        this.searchInputEl.value = '';
+        this.searchQuery = '';
+        this.searchContainerEl?.classList.remove('has-text');
+        this.searchInputEl.focus();
+        this.renderCatalog();
+      }
+    });
+
+    // Global keyboard shortcut ('/' to focus search, 'Escape' to blur/clear)
+    document.addEventListener('keydown', (e) => {
+      const isReaderOpen = document.getElementById('reader-modal')?.classList.contains('active');
+      const isZoomOpen = document.getElementById('zoom-modal')?.classList.contains('active');
+      if (isReaderOpen || isZoomOpen) return;
+
+      if (e.key === '/' && document.activeElement !== this.searchInputEl) {
+        e.preventDefault();
+        this.searchInputEl?.focus();
+        this.searchInputEl?.select();
+      } else if (e.key === 'Escape' && document.activeElement === this.searchInputEl) {
+        if (this.searchInputEl.value) {
+          this.searchInputEl.value = '';
+          this.searchQuery = '';
+          this.searchContainerEl?.classList.remove('has-text');
+          this.renderCatalog();
+        }
+        this.searchInputEl.blur();
+      }
     });
 
     // Year filter pills
